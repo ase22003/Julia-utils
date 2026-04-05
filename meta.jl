@@ -15,42 +15,94 @@ end
 
 tokenize(str::String)::Tokens = filter!(x -> x != "", split(str, ' ')) → reverse
 
-@logged function call_expr(tokens#=::Tokens=#, BEGIN_STRING#=::String=#, END_STRING#=::String=#)#::Expr
+#{{{old
+#call_expr(str::String)::Expr = Expr(:call, [(s -> *((Tuple(s) .→ isnumeric)...) ? parse(Int, s) : Symbol(s))(token) for token ∈ tokenize(str)]...)
+#call_expr(str::String)::Expr = Expr(:call, ((s -> *((Tuple(s) .→ isnumeric)...) ? parse(Int, s) : Symbol(s)).(tokenize(str)))...)
+
+#=
+@logged function scall(tokens::Tokens, token_index::Index)::Expr
+	@token != "(" && error("call must begin with '('")
+	@next
+	name = Symbol(@token)
+	args::Vector{Union{Symbol, Expr}} = []
+	while true
+		@next
+		token_index = length(tokens) && break
+		@token == ")" && break
+		@token == "(" && push!(args, scall(tokens, token_index))
+		push!(args, *((Tuple(@token) .→ isnumeric)...) ? parse(Int, @token) : Symbol(@token))
+	end
+	return Expr(:call, name, args...)
+end
+=#
+#}}}
+
+#function scall(tokens::Tokens)::Expr
+@logged function call_expr(tokens#=::Tokens=#, EXPR_BEGIN#=::String=#, EXPR_END#=::String=#)#::Expr
 	if length(tokens) == 0
 		error("there are no tokens to parse")
 	end
-	if ==(@token, BEGIN_STRING)
+	#if !@tokenis BEGIN
+	#	error("expression must begin with '(' -- cannot begin with '", @token, '\'')
+	#end
+	if ==(@token, EXPR_BEGIN)
 		@next
 	end
-	name = Symbol(@token)
-	args::Vector{Union{Symbol, Int64, Expr}} = []
+	name = @token
+	args::Vector{Union{Symbol, Int64, Float16, String, Char, Expr}} = []
 	@log @token
 	@log "arguments:"
 	while true
 		@next
 		if length(tokens) == 0
 			break
-		elseif ==(@token, END_STRING)
+		elseif ==(@token, EXPR_END)
 			break
-		elseif ==(@token, BEGIN_STRING)
-			push!(args, call_expr(tokens, BEGIN_STRING, END_STRING))
+		elseif ==(@token, EXPR_BEGIN)
+			push!(args, call_expr(tokens, EXPR_BEGIN, EXPR_END))
 		else
 			@log @token
-			elem = (x -> (
-				try
-					return parse(Int64, x)
-				catch
-					return Symbol(x)
-				end
-			))(@token)
-			push!(args, elem)
+			push!(args, call_value(tokens))
 		end
 	end
 
-	return Expr(:call, name, args...)
+	return Expr(:call, Symbol(name), args...)
 end
 function call_expr(tokens::Tokens)
 	call_expr(tokens, "(", ")")
+end
+
+@logged function call_value(tokens)
+	try
+		r = parse(Int64, @token)
+		@log "integer"
+		return r
+	catch
+	end
+	try
+		r = parse(Float16, @token)
+		@log "float"
+		return r
+	catch
+	end
+	try
+		for d ∈ ('\'', '\"')
+			if (@token)[1] == d && (@token)[end] == d
+				if d == '\''
+					r = (@token)[2]
+					@log "character"
+					return r
+				else
+					r = String(split(@token, d)[2])
+					@log "string"
+					return r
+				end
+			end
+		end
+	catch
+	end
+	@log "symbol"
+	return Symbol(@token)
 end
 
 macro run_call_string(s::String)
@@ -61,6 +113,7 @@ macro run_call_string(s::String, BEGIN::String, END::String)
 end
 macro run_call_string(s::Evaluable)
 	(tokenize(eval(s)) → call_expr) → esc
+	#:(@run_call_string $(eval(s))) ????????????
 end
 macro run_call_string(s::Evaluable, BEGIN::String, END::String)
 	call_expr(tokenize(eval(s)), BEGIN, END) → esc
