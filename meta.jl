@@ -45,7 +45,6 @@ end
 	if length(tokens) == 0
 		error("there are no tokens to parse")
 	end
-	#@log @token
 	#if !@tokenis "("
 	#	error("expression must begin with '(' -- cannot begin with '", @token, '\'')
 	#end
@@ -58,7 +57,6 @@ end
 	@log "arguments:"
 	while true
 		@next
-		#@log @token
 		if length(tokens) == 0
 			break
 		elseif @tokenis ")"
@@ -68,15 +66,23 @@ end
 		else
 			@log @token
 			#push!(args, *((Tuple(@token) .→ x->isnumeric(x) || x == '-')...) ? parse(Int64, @token) : Symbol(@token))
-			push!(args, ∀(x->isnumeric(x) || x == '-', Tuple(@token)) ? parse(Int64, @token) : Symbol(@token))
+			#push!(args, ∀(x->isnumeric(x) || x == '-', Tuple(@token)) ? parse(Int64, @token) : Symbol(@token))
+			elem = (x -> (
+				try
+					return parse(Int64, x)
+				catch
+					return Symbol(x)
+				end
+			))(@token)
+			push!(args, elem)
 		end
 	end
 
 	return Expr(:call, name, args...)
 end
 
-macro run_user_command()
-	(input("Enter command: ") → tokenize) → call_expr
+macro execute_string(s::Expr)
+	(tokenize(eval(s)) → call_expr) → esc
 end
 
 # TODO:
