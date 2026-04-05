@@ -31,9 +31,6 @@ macro logged(func)
 	sig  = func.args[1]
 	name =  sig.args[1]
 	body = func.args[2]
-	#dump(sig)
-	#dump(name)
-	#dump(body)
 
 	_debug_replace_returns(body, name)
 
