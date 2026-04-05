@@ -15,29 +15,6 @@ end
 
 tokenize(str::String)::Tokens = filter!(x -> x != "", split(str, ' ')) → reverse
 
-#{{{old
-#call_expr(str::String)::Expr = Expr(:call, [(s -> *((Tuple(s) .→ isnumeric)...) ? parse(Int, s) : Symbol(s))(token) for token ∈ tokenize(str)]...)
-#call_expr(str::String)::Expr = Expr(:call, ((s -> *((Tuple(s) .→ isnumeric)...) ? parse(Int, s) : Symbol(s)).(tokenize(str)))...)
-
-#=
-@logged function scall(tokens::Tokens, token_index::Index)::Expr
-	@token != "(" && error("call must begin with '('")
-	@next
-	name = Symbol(@token)
-	args::Vector{Union{Symbol, Expr}} = []
-	while true
-		@next
-		token_index = length(tokens) && break
-		@token == ")" && break
-		@token == "(" && push!(args, scall(tokens, token_index))
-		push!(args, *((Tuple(@token) .→ isnumeric)...) ? parse(Int, @token) : Symbol(@token))
-	end
-	return Expr(:call, name, args...)
-end
-=#
-#}}}
-
-#function scall(tokens::Tokens)::Expr
 @logged function call_expr(tokens#=::Tokens=#, EXPR_BEGIN#=::String=#, EXPR_END#=::String=#)#::Expr
 	if length(tokens) == 0
 		error("there are no tokens to parse")
