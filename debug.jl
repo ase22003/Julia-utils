@@ -49,6 +49,9 @@ macro logged(func)
 end
 
 function _debug_replace_returns(code::Expr, func_name::Symbol)
+	if code.head == :->
+		return
+	end
 	if code.head == :return
 		ret_stmt = copy(code)
 		new_asgn = :(_debug_return = $(ret_stmt.args[1]))
