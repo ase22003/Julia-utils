@@ -16,11 +16,14 @@ write(debug_file, "")
 close(debug_file)
 #}}}
 
-macro log(var)
-	if typeof(var) == String
-		return Expr(:call, :_debug_log, "(LOG) «", var, '»')
-	end
-	Expr(:call, :_debug_log, replace(string("(LOG) ", var, " = "), r"#=(?s).*?=# " => ""), var)
+macro log(msg::String)
+	Expr(:call, :_debug_log, "(LOG) «", msg, '»')
+end
+macro log(var::Symbol, str::String)
+	Expr(:call, :_debug_log, replace(string("($str) $var = "), r"#=(?s).*?=# " => ""), var)
+end
+macro log(var::Symbol)
+	:(@log $var "LOG")
 end
 
 macro logged(func)
@@ -28,21 +31,35 @@ macro logged(func)
 		error("@logged used without a following function definition")
 	end
 
-	sig  = func.args[1]
-	name =  sig.args[1]
-	body = func.args[2]
+	     sig::Expr   = func.args[1]
+	    body::Expr   = func.args[2]
+	sig_expr::Expr   = _get_sig_expr(sig)
+	    name::Symbol = sig_expr.args[1]
+
+	args::Vector{Symbol} = sig_expr.args[2:end] .|> x -> typeof(x) == Symbol ? x : _get_sig_expr(x).args[1]
 
 	_debug_replace_returns(body, name)
 
 	prod =	Expr(:function, sig,
 				Expr(:block,
-					 Expr(:call, :_debug_func_stack_call, QuoteNode(name)),
+					Expr(:call, :_debug_func_stack_call, QuoteNode(name)),
+					(args .|> x->:(@log $x "ARG"))...,
 					body
 				)
 			)
 
 	_debug_log("LOGGED: $name")
+	println(prod)
+	##dump(prod, maxdepth=100)
 	return prod
+end
+
+function _get_sig_expr(e::Expr)::Expr
+	if typeof(e.args[1]) == Symbol
+		return e
+	else
+		return _get_sig_expr(e.args[1])
+	end
 end
 
 function _debug_replace_returns(code::Expr, func_name::Symbol)
