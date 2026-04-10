@@ -45,13 +45,55 @@ tokenize(str::String)::Tokens = filter!(x -> x != "", split(str, ' ')) → rever
 		elseif ==(@token, "function")
 			@log "FUNCTION"
 			@next
-			sig  = call_expr(tokens)
-			code = call_block(tokens)
-			push!(statements, Expr(:function, sig, code))
+			sig  = call_expr(tokens) # ARG!!!!!
+			block = call_block(tokens) # ARG!!!!!
+			push!(statements, Expr(:function, sig, block))
 		elseif ==(@token, "return")
 			@log "RETURN"
 			@next
 			push!(statements, Expr(:return, call_expr(tokens))) # ARG!!!!!
+		elseif ==(@token, "assign")
+			@log "ASSIGNMENT"
+			@next
+			if ==(@token, "(") # !!!!!
+				name = call_expr(tokens) # ARG!!!!!
+			else
+				name = call_value(tokens)
+				@next
+			end
+			if ==(@token, "(") # !!!!!
+				value = call_expr(tokens) # ARG!!!!!
+			else
+				value = call_value(tokens)
+				@next
+			end
+			push!(statements, Expr(:(=), name, value))
+		#= problem with scope, UndefVarError
+		elseif ==(@token, "for")
+			@log "'FOR' LOOP"
+			@next
+			iter  = call_expr(tokens) # ARG!!!!!
+			block = call_block(tokens) # ARG!!!!!
+			push!(statements, Expr(:for, iter, block))
+		=#
+		elseif ==(@token, "while")
+			@log "'WHILE' LOOP"
+			@next
+			cond  = call_expr(tokens) # ARG!!!!!
+			block = call_block(tokens) # ARG!!!!!
+			push!(statements, Expr(:while, cond, block))
+		#= anonymous functions must be part of expressions -- they're not statements
+		elseif ==(@token, "anon")
+			@log "ANONYMOUS FUNCTION"
+			@next
+			arg   = call_value(tokens)
+			@next
+			if typeof(arg) != Symbol
+				error("name of anonymous function must be a symbol. '$arg' is of type $(typeof(arg))")
+			end
+			block = call_block(tokens) # ARG!!!!!
+			push!(statements, Expr(:(->), arg, block))
+		=#
 		else
 			@log "EXPRESSION"
 			push!(statements, call_expr(tokens)) # ARG!!!!!
@@ -132,21 +174,22 @@ end
 end
 
 macro run_call_string(s::String)
-	(tokenize(s) → call_expr) → esc
+	(tokenize(s) → call_block) → esc
 end
 macro run_call_string(s::String, BEGIN::String, END::String)
-	call_expr(tokenize(s), BEGIN, END) → esc
+	call_block(tokenize(s), BEGIN, END) → esc
 end
 macro run_call_string(s::Evaluable)
-	(tokenize(eval(s)) → call_expr) → esc
+	(tokenize(eval(s)) → call_block) → esc
 	#:(@run_call_string $(eval(s))) ????????????
 end
 macro run_call_string(s::Evaluable, BEGIN::String, END::String)
-	call_expr(tokenize(eval(s)), BEGIN, END) → esc
+	call_block(tokenize(eval(s)), BEGIN, END) → esc
 end
 
 
 # TODO:
 # - make a better tokenizer that can split up expressions like: "(+ 3 4)"
-# - loops, assignments, anonymous functions (->) and so on
+# - implement loops, anonymous functions (->), ranges and so on
 # - replace func(tokens, "begin", "("...) with a single dictionary of sybols func(tokens, sym_map), where sym_map = {EXPR_BEGIN => "("...}
+# - rename call_X function names
