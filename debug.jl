@@ -51,7 +51,7 @@ macro logged(func)
 							if !∈(arg, args)
 								error("@ignore used on a non-existent or already ignored variable '$arg'")
 							end
-							_debug_log("ignoring argument ", arg, "in function $name")
+							_debug_log("Ignoring argument ", arg, " in function $name")
 							delete!(args, arg)
 						end
 					end
@@ -71,8 +71,6 @@ macro logged(func)
 			)
 
 	_debug_log("LOGGED: $name")
-	println(prod)
-	##dump(prod, maxdepth=100)
 	return prod
 end
 

@@ -25,7 +25,7 @@ function weighted_sample(items::Tuple, f::Function) #AI GENERATED
 end
 #}}}
 
-@logged function ϟ(Φ::Dict, σ::Tuple)::Tuple
+@logged function ϟ_step(Φ::Dict, σ::Tuple)::Tuple
 	if length(σ) == 0
 		return σ
 	end
@@ -42,48 +42,11 @@ end
 	return tuple(new...)
 end
 
-
-@logged function ϟ_inference(Φ::Dict, σ::Tuple, depth::Float64)::Tuple
-	if length(σ) == 0
-		return σ
-	end
-
-	new = []
-	for token ∈ σ
-		if token ∈ keys(Φ)
-			push!(new, weighted_sample(Φ[token], x->MathConstants.e^(length(x)*depth))...)
-		else
-			push!(new, token)
-		end
-	end
-
-	return tuple(new...)
-end
-
-@logged function ϟ(Φ::Dict, σ::Tuple, depth::Float64, breadth::Float64, decay::Function)::Tuple
-		if length(σ) == 0
-			return σ
-		end
-
-		new = []
-		for token ∈ σ
-			if token ∈ keys(Φ)
-				#push!(new, (ϟ(Φ, weighted_sample(Φ[token], x->MathConstants.e^(length(intersect(x, keys(Φ)))*depth)), decay(depth), breadth, decay))...)
-				push!(new, (ϟ(Φ, weighted_sample(Φ[token], x->MathConstants.e^(length(filter!(t->t∈ keys(Φ), collect(x)))*depth)), decay(depth), breadth, decay))...)
-				depth += breadth
-			else
-				push!(new, token)
-			end
-		end
-
-		return tuple(new...)
-end
-
-function legs(Φ::Dict, σ::Tuple)::Int64
+function _legs(Φ::Dict, σ::Tuple)::Int64
 	@ignore Φ
 	return length(filter!(t->t ∈ keys(Φ), collect(σ)))
 end
-@logged function ϟ_bread(Φ::Dict, σ::Tuple, depth_breadth::Float64)::Tuple
+@logged function ϟ(Φ::Dict, σ::Tuple, depth_breadth::Float64)::Tuple
 	@ignore Φ
 	if length(σ) == 0
 		return σ
@@ -103,8 +66,7 @@ end
 						Φ,
 						weighted_sample(
 							Φ[token],
-							x->db^(legs(Φ, x))
-							#MathConstants.e^(length(filter!(t->t∈ keys(Φ), collect(x)))*db)
+							x->db^_legs(Φ, x)
 						),
 						db
 					)
@@ -116,27 +78,25 @@ end
 		end
 	end
 
-	new2 = []
+	evaluated = []
 	for (i, item) ∈ enumerate(new)
 		if typeof(item) <: Function
-			push!(new2, item(depth_breadth/(breadth))...)
+			push!(evaluated, item(depth_breadth / breadth)...)
 		else
-			push!(new2, item)
+			push!(evaluated, item)
 		end
 	end
 
-	return tuple(new2...)
+	return tuple(evaluated...)
 end
 
 #{{{EXAMPLES
 mx = Dict(
 	'x' => (
-		#('t'," + ",'x'),
 		('x'," + ",'x'),
 		('t',)
 	),
 	't' => (
-		#('f'," * ",'t'),
 		('t'," × ",'t'),
 		('f',)
 	),
@@ -183,14 +143,13 @@ mx2 = Dict(
 språk = Dict(
 	"mening" => (
 		("mening", ' ', "konnektiv", ' ', "mening"),
-		("sats",)
+		("sats",),
 	),
 	"konnektiv" => (
 		("och",),
 		("eller",),
 		("medan",),
 		("om",),
-		#("om, och endast om",)
 	),
 	"sats" => (
 		("objekt", ' ', "verb", ' ', "objekt"),
@@ -202,11 +161,11 @@ språk = Dict(
 		("säljer",),
 		("köper",),
 		("målar",),
-		("är",)
+		("är",),
 	),
 	"objekt" => (
 		("min ", "person"),
-		("en ", "substantiv")
+		("en ", "substantiv"),
 	),
 	"substantiv" => (
 		("egenskap", ' ', "substantiv"),
@@ -215,6 +174,7 @@ språk = Dict(
 		("katt",),
 		("hund",),
 		("bok",),
+		("vin",),
 	),
 	"adverb" => (
 		("snabbt",),
@@ -244,7 +204,7 @@ språk = Dict(
 		("dotter",),
 		("son",),
 		("syster",),
-		("broder",)
+		("broder",),
 	),
 	"bekant" => (
 		("vän",),
@@ -262,7 +222,7 @@ språk = Dict(
 		("korkade",),
 		("galna",),
 		("coola",),
-		("elaka",)
+		("elaka",),
 	),
 )
 #}}}
