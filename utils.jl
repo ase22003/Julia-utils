@@ -16,6 +16,12 @@ SET_TYPES = [
 	AbstractDict,
 	AbstractVecOrMat
 ]
+#for type ∈ SET_TYPES
+#	if length(string(type)) > 8
+#		string(type)[1:8] == "Abstract" && continue
+#	end
+#	push!(SET_TYPES, Symbol(string("Abstract", type)))
+#end
 #}}}
 #{{{alias
 → = |>
@@ -50,5 +56,10 @@ end
 
 macro ∀(elem, cond, S)
 	return :(!(@∃ $elem !($cond) $S))
+end
+#}}}
+#{{{○
+function ○(f::Function, n::Int)::Function
+	∘([f for i in 1:n]...)
 end
 #}}}

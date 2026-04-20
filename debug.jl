@@ -1,3 +1,5 @@
+Evaluable = Union{Expr, Symbol}
+
 mutable struct Debug
 	level::UInt16
 end
@@ -7,7 +9,7 @@ for op ∈ (:+, :-)
 end
 
 global DEBUG_LEVEL = Debug(0)
-const DEBUG_DO_PRINT = true
+global DEBUG_DO_PRINT = true
 const DEBUG_LOG_FILE_NAME = ".julia_debug_log"
 
 #{{{TEMPORARY
@@ -19,13 +21,16 @@ close(debug_file)
 macro log(msg::String)
 	Expr(:call, :_debug_log, "(LOG) «", msg, '»')
 end
-macro log(var::Symbol, str::String)
-	Expr(:call, :_debug_log, replace(string("($str) $var = "), r"#=(?s).*?=# " => ""), var)
+macro log(val::Evaluable, str::String)
+	Expr(:call, :_debug_log, replace(string("($str) $val = "), r"#=(?s).*?=# " => ""), val)
 end
-macro log(var::Symbol)
+macro log(var::Evaluable)
 	:(@log $var "LOG")
 end
 
+macro ignore(arg) #used within @logged
+	:(nothing)
+end
 macro logged(func)
 	if func.head != :function
 		error("@logged used without a following function definition")
@@ -36,7 +41,24 @@ macro logged(func)
 	sig_expr::Expr   = _get_sig_expr(sig)
 	    name::Symbol = sig_expr.args[1]
 
-	args::Vector{Symbol} = sig_expr.args[2:end] .|> x -> typeof(x) == Symbol ? x : _get_sig_expr(x).args[1]
+	args::Set{Symbol} = Set(sig_expr.args[2:end] .|> x -> typeof(x) == Symbol ? x : _get_sig_expr(x).args[1])
+	for stmt ∈ body.args
+		if typeof(stmt) == Expr
+			if stmt.head == :macrocall
+				if stmt.args[1] == Symbol("@ignore")
+					for arg ∈ stmt.args[2:end]
+						if typeof(arg) == Symbol
+							if !∈(arg, args)
+								error("@ignore used on a non-existent or already ignored variable '$arg'")
+							end
+							_debug_log("ignoring argument ", arg, "in function $name")
+							delete!(args, arg)
+						end
+					end
+				end
+			end
+		end
+	end
 
 	_debug_replace_returns(body, name)
 
@@ -103,3 +125,7 @@ function _debug_log(msgs...)
 	close(debug_file)
 	#}}}
 end
+
+# TODO:
+# - add argument printout to function calls
+# - add campatibillity with type declarations f(x::Int64)

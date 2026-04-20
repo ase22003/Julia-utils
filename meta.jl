@@ -45,7 +45,7 @@ tokenize(str::String)::Tokens = filter!(x -> x != "", split(str, ' ')) → rever
 		elseif ==(@token, "function")
 			@log "FUNCTION"
 			@next
-			sig  = call_expr(tokens) # ARG!!!!!
+			sig   = call_expr(tokens) # ARG!!!!!
 			block = call_block(tokens) # ARG!!!!!
 			push!(statements, Expr(:function, sig, block))
 		elseif ==(@token, "return")
@@ -190,6 +190,8 @@ end
 
 # TODO:
 # - make a better tokenizer that can split up expressions like: "(+ 3 4)"
+#   - one can model the state machine as a set of permutations -- for example 'a' -- which maps one state (modeled as integers) to another
 # - implement loops, anonymous functions (->), ranges and so on
+#   - generalize expressions so as to include non-calls, like anonymous functions
 # - replace func(tokens, "begin", "("...) with a single dictionary of sybols func(tokens, sym_map), where sym_map = {EXPR_BEGIN => "("...}
 # - rename call_X function names
