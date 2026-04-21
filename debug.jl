@@ -48,7 +48,7 @@ macro logged(func)
 				if stmt.args[1] == Symbol("@ignore")
 					for arg ∈ stmt.args[2:end]
 						if typeof(arg) == Symbol
-							if !∈(arg, args)
+							if arg ∉ args
 								error("@ignore used on a non-existent or already ignored variable '$arg'")
 							end
 							_debug_log("Ignoring argument ", arg, " in function $name")

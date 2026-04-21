@@ -24,8 +24,7 @@ end
 
 tokenize(str::String, str_filter::Function = x->replace(x, '\n'=>' '))::Tokens = filter!(x->x!="", split(str → str_filter, ' ')) → reverse
 
-
-@logged function call_block(tokens::Tokens, BLOCK_BEGIN::String, BLOCK_END::String)::Expr
+@logged function _meta_block(tokens::Tokens, BLOCK_BEGIN::String, BLOCK_END::String)::Expr
 	@ignore tokens
 	@ignore BLOCK_BEGIN
 	@ignore BLOCK_END
@@ -41,34 +40,37 @@ tokenize(str::String, str_filter::Function = x->replace(x, '\n'=>' '))::Tokens =
 		@log tokens
 		if length(tokens) == 0
 			break
+		elseif ==(@token, "(") #!!!!!
+			@log "CALL"
+			push!(statements, _meta_call(tokens)) # ARG!!!!!
 		elseif ==(@token, BLOCK_BEGIN)
-			push!(statements, call_block(tokens, BLOCK_BEGIN, BLOCK_END))
+			push!(statements, _meta_block(tokens, BLOCK_BEGIN, BLOCK_END))
 		elseif ==(@token, BLOCK_END)
 			@next
 			break
 		elseif ==(@token, "function")
 			@log "FUNCTION"
 			@next
-			sig   = call_expr(tokens) # ARG!!!!!
-			block = call_block(tokens) # ARG!!!!!
+			sig   = _meta_expr(tokens) # ARG!!!!!
+			block = _meta_block(tokens) # ARG!!!!!
 			push!(statements, Expr(:function, sig, block))
 		elseif ==(@token, "return")
 			@log "RETURN"
 			@next
-			push!(statements, Expr(:return, call_expr(tokens))) # ARG!!!!!
+			push!(statements, Expr(:return, _meta_expr(tokens))) # ARG!!!!!
 		elseif ==(@token, "assign")
 			@log "ASSIGNMENT"
 			@next
 			if ==(@token, "(") # !!!!!
-				name = call_expr(tokens) # ARG!!!!!
+				name = _meta_expr(tokens) # ARG!!!!!
 			else
-				name = call_value(tokens)
+				name = _meta_value(tokens)
 				@next
 			end
 			if ==(@token, "(") # !!!!!
-				value = call_expr(tokens) # ARG!!!!!
+				value = _meta_expr(tokens) # ARG!!!!!
 			else
-				value = call_value(tokens)
+				value = _meta_value(tokens)
 				@next
 			end
 			push!(statements, Expr(:(=), name, value))
@@ -76,52 +78,70 @@ tokenize(str::String, str_filter::Function = x->replace(x, '\n'=>' '))::Tokens =
 		elseif ==(@token, "for")
 			@log "'FOR' LOOP"
 			@next
-			iter  = call_expr(tokens) # ARG!!!!!
-			block = call_block(tokens) # ARG!!!!!
+			iter  = _meta_expr(tokens) # ARG!!!!!
+			block = _meta_block(tokens) # ARG!!!!!
 			push!(statements, Expr(:for, iter, block))
 		=#
 		elseif ==(@token, "while")
 			@log "'WHILE' LOOP"
 			@next
-			cond  = call_expr(tokens) # ARG!!!!!
-			block = call_block(tokens) # ARG!!!!!
+			cond  = _meta_expr(tokens) # ARG!!!!!
+			block = _meta_block(tokens) # ARG!!!!!
 			push!(statements, Expr(:while, cond, block))
-		#= anonymous functions must be part of expressions -- they're not statements
-		elseif ==(@token, "anon")
-			@log "ANONYMOUS FUNCTION"
-			@next
-			arg   = call_value(tokens)
-			@next
-			if typeof(arg) != Symbol
-				error("name of anonymous function must be a symbol. '$arg' is of type $(typeof(arg))")
-			end
-			block = call_block(tokens) # ARG!!!!!
-			push!(statements, Expr(:(->), arg, block))
-		=#
 		else
-			@log "EXPRESSION"
-			push!(statements, call_expr(tokens)) # ARG!!!!!
+			@log "ASSUMING EXPRESSION"
+			push!(statements, _meta_expr(tokens)) # ARG!!!!!
 		end
 	end
 	return Expr(:block, statements...)
 end
-function call_block(tokens::Tokens)
-	call_block(tokens, "begin", "end")
+function _meta_block(tokens::Tokens)
+	_meta_block(tokens, "begin", "end")
 end
 
-@logged function call_expr(tokens::Tokens, EXPR_BEGIN::String, EXPR_END::String)::Expr
+@logged function _meta_expr(tokens::Tokens, CALL_BEGIN::String, CALL_END::String)::Expr
+	#@ignore tokens
+	@ignore CALL_BEGIN
+	@ignore CALL_END
+
+	@log @token
+	if     ==(@token, CALL_BEGIN)
+		@log "CALL"
+		return _meta_call(tokens, CALL_BEGIN, CALL_END) # ARG!!!!!
+	elseif ==(@token, "anon")
+		@log "ANONYMOUS FUNCTION"
+		@next
+		arg = _meta_value(tokens)
+		@next
+		if typeof(arg) != Symbol
+			error("name of anonymous function must be a symbol. '$arg' is of type $(typeof(arg))")
+		end
+		return Expr(:(->), arg, _meta_block(tokens)) #ARG!!!!!
+	elseif ==(@token, "expand")
+		@log "ARGUMENT EXPANSION"
+		@next
+		return Expr(:..., _meta_expr(tokens)) #ARG!!!!!
+	else
+		error("expression cannot begin with '$(@token)'")
+	end
+end
+function _meta_expr(tokens::Tokens) #!!!
+	_meta_expr(tokens, "(", ")")
+end
+
+@logged function _meta_call(tokens::Tokens, CALL_BEGIN::String, CALL_END::String)::Expr
 	@ignore tokens
-	@ignore EXPR_BEGIN
-	@ignore EXPR_END
+	@ignore CALL_BEGIN
+	@ignore CALL_END
 	if length(tokens) == 0
 		#error("there are no tokens to parse")
 		return :(nothing)
 	end
-	if !=(@token, EXPR_BEGIN)
-		error("expression must begin with '$EXPR_BEGIN' -- cannot begin with '$(@token)'")
+	if !=(@token, CALL_BEGIN)
+		error("expression must begin with '$CALL_BEGIN' -- cannot begin with '$(@token)'")
 	end
 	@next
-	#if ==(@token, EXPR_BEGIN)
+	#if ==(@token, CALL_BEGIN)
 	#	@next
 	#end
 	name = @token
@@ -130,24 +150,24 @@ end
 	args::Vector{Value} = []
 	while true
 		@log @token
-		if     ==(@token, EXPR_BEGIN)
-			push!(args, call_expr(tokens, EXPR_BEGIN, EXPR_END))
-		elseif ==(@token, EXPR_END)
+		if     ==(@token, CALL_BEGIN)
+			push!(args, _meta_expr(tokens, CALL_BEGIN, CALL_END))
+		elseif ==(@token, CALL_END)
 			@next
 			break
 		else #token is a value
-			push!(args, call_value(tokens))
+			push!(args, _meta_value(tokens))
 			@next
 		end
 	end
 
 	return Expr(:call, Symbol(name), args...)
 end
-function call_expr(tokens::Tokens)
-	call_expr(tokens, "(", ")")
+function _meta_call(tokens::Tokens) #!!!!
+	_meta_call(tokens, "(", ")")
 end
 
-@logged function call_value(tokens::Tokens)::Value
+@logged function _meta_value(tokens::Tokens)::Value
 	@ignore tokens
 	@log @token
 	try
@@ -182,18 +202,18 @@ end
 	return Symbol(@token)
 end
 
-macro run_call_string(s::String)
-	(tokenize(s) → call_block) → esc
+macro run_meta_string(s::String)
+	(tokenize(s) → _meta_block) → esc
 end
-macro run_call_string(s::String, BEGIN::String, END::String)
-	call_block(tokenize(s), BEGIN, END) → esc
+macro run_meta_string(s::String, BEGIN::String, END::String)
+	_meta_block(tokenize(s), BEGIN, END) → esc
 end
-macro run_call_string(s::Evaluable)
-	(tokenize(eval(s)) → call_block) → esc
-	#:(@run_call_string $(eval(s))) ????????????
+macro run_meta_string(s::Evaluable)
+	(tokenize(eval(s)) → _meta_block) → esc
+	#:(@run__meta_string $(eval(s))) ????????????
 end
-macro run_call_string(s::Evaluable, BEGIN::String, END::String)
-	call_block(tokenize(eval(s)), BEGIN, END) → esc
+macro run_meta_string(s::Evaluable, BEGIN::String, END::String)
+	_meta_block(tokenize(eval(s)), BEGIN, END) → esc
 end
 
 
@@ -202,5 +222,5 @@ end
 #   - one can model the state machine as a set of permutations -- for example 'a' -- which maps one state (modeled as integers) to another
 # - implement loops, anonymous functions (->), ranges and so on
 #   - generalize expressions so as to include non-calls, like anonymous functions
-# - replace func(tokens, "begin", "("...) with a single dictionary of sybols func(tokens, sym_map), where sym_map = {EXPR_BEGIN => "("...}
-# - rename call_X function names
+# - replace func(tokens, "begin", "("...) with a single dictionary of sybols func(tokens, sym_map), where sym_map = {CALL_BEGIN => "("...}
+# - rename _meta_X function names
