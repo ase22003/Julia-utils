@@ -22,9 +22,21 @@ macro next()
 	:(pop!(tokens)) → esc
 end
 
-tokenize(str::String)::Tokens = filter!(x -> x != "", split(str, ' ')) → reverse
+replace_chars(str::String, chars::Vector{Char})::String = string((collect(str) → (v->filter!(x->x ∉ chars, v)))...)
+replace_chars(str::String, char::Char)::String = remove_chars(str, [char])
+
+tokenize(str::String, str_filter::Function = x->remove_chars(x, '\n'))::Tokens = filter!(x->x!="",
+										split(
+											  str → str_filter,
+											  ' '
+										)
+								) → reverse
+
 
 @logged function call_block(tokens::Tokens, BLOCK_BEGIN::String, BLOCK_END::String)::Expr
+	@ignore tokens
+	@ignore BLOCK_BEGIN
+	@ignore BLOCK_END
 	if length(tokens) == 0
 		return :(nothing)
 	end
@@ -106,12 +118,15 @@ function call_block(tokens::Tokens)
 end
 
 @logged function call_expr(tokens::Tokens, EXPR_BEGIN::String, EXPR_END::String)::Expr
+	@ignore tokens
+	@ignore EXPR_BEGIN
+	@ignore EXPR_END
 	if length(tokens) == 0
 		#error("there are no tokens to parse")
 		return :(nothing)
 	end
 	if !=(@token, EXPR_BEGIN)
-		error("expression must begin with '(' -- cannot begin with '", @token, '\'')
+		error("expression must begin with '$EXPR_BEGIN' -- cannot begin with '$(@token)'")
 	end
 	@next
 	#if ==(@token, EXPR_BEGIN)
@@ -141,6 +156,8 @@ function call_expr(tokens::Tokens)
 end
 
 @logged function call_value(tokens::Tokens)::Value
+	@ignore tokens
+	@log @token
 	try
 		r = parse(Int64, @token)
 		@log "integer"
