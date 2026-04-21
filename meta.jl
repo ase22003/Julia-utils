@@ -22,15 +22,7 @@ macro next()
 	:(pop!(tokens)) → esc
 end
 
-replace_chars(str::String, chars::Vector{Char})::String = string((collect(str) → (v->filter!(x->x ∉ chars, v)))...)
-replace_chars(str::String, char::Char)::String = remove_chars(str, [char])
-
-tokenize(str::String, str_filter::Function = x->remove_chars(x, '\n'))::Tokens = filter!(x->x!="",
-										split(
-											  str → str_filter,
-											  ' '
-										)
-								) → reverse
+tokenize(str::String, str_filter::Function = x->replace(x, '\n'=>' '))::Tokens = filter!(x->x!="", split(str → str_filter, ' ')) → reverse
 
 
 @logged function call_block(tokens::Tokens, BLOCK_BEGIN::String, BLOCK_END::String)::Expr
