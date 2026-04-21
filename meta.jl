@@ -40,9 +40,6 @@ tokenize(str::String, str_filter::Function = x->replace(x, '\n'=>' '))::Tokens =
 		@log tokens
 		if length(tokens) == 0
 			break
-		elseif ==(@token, "(") #!!!!!
-			@log "CALL"
-			push!(statements, _meta_call(tokens)) # ARG!!!!!
 		elseif ==(@token, BLOCK_BEGIN)
 			push!(statements, _meta_block(tokens, BLOCK_BEGIN, BLOCK_END))
 		elseif ==(@token, BLOCK_END)
@@ -89,7 +86,7 @@ tokenize(str::String, str_filter::Function = x->replace(x, '\n'=>' '))::Tokens =
 			block = _meta_block(tokens) # ARG!!!!!
 			push!(statements, Expr(:while, cond, block))
 		else
-			@log "ASSUMING EXPRESSION"
+			@log "ASSUMING EXPR"
 			push!(statements, _meta_expr(tokens)) # ARG!!!!!
 		end
 	end
@@ -99,60 +96,24 @@ function _meta_block(tokens::Tokens)
 	_meta_block(tokens, "begin", "end")
 end
 
-@logged function _meta_expr(tokens::Tokens, CALL_BEGIN::String, CALL_END::String)::Expr
-	#@ignore tokens
-	@ignore CALL_BEGIN
-	@ignore CALL_END
-
-	@log @token
-	if     ==(@token, CALL_BEGIN)
-		@log "CALL"
-		return _meta_call(tokens, CALL_BEGIN, CALL_END) # ARG!!!!!
-	elseif ==(@token, "anon")
-		@log "ANONYMOUS FUNCTION"
-		@next
-		arg = _meta_value(tokens)
-		@next
-		if typeof(arg) != Symbol
-			error("name of anonymous function must be a symbol. '$arg' is of type $(typeof(arg))")
-		end
-		return Expr(:(->), arg, _meta_block(tokens)) #ARG!!!!!
-	elseif ==(@token, "expand")
-		@log "ARGUMENT EXPANSION"
-		@next
-		return Expr(:..., _meta_expr(tokens)) #ARG!!!!!
-	else
-		error("expression cannot begin with '$(@token)'")
-	end
-end
-function _meta_expr(tokens::Tokens) #!!!
-	_meta_expr(tokens, "(", ")")
-end
-
-@logged function _meta_call(tokens::Tokens, CALL_BEGIN::String, CALL_END::String)::Expr
+@logged function _meta_expr(tokens::Tokens, EXPR_BEGIN::String, EXPR_END::String)::Expr
 	@ignore tokens
-	@ignore CALL_BEGIN
-	@ignore CALL_END
+	@ignore EXPR_BEGIN
+	@ignore EXPR_END
 	if length(tokens) == 0
 		#error("there are no tokens to parse")
 		return :(nothing)
 	end
-	if !=(@token, CALL_BEGIN)
-		error("expression must begin with '$CALL_BEGIN' -- cannot begin with '$(@token)'")
+	if !=(@token, EXPR_BEGIN)
+		error("expression must begin with '$EXPR_BEGIN' -- cannot begin with '$(@token)'")
 	end
-	@next
-	#if ==(@token, CALL_BEGIN)
-	#	@next
-	#end
-	name = @token
-	@log name
 	@next
 	args::Vector{Value} = []
 	while true
 		@log @token
-		if     ==(@token, CALL_BEGIN)
-			push!(args, _meta_expr(tokens, CALL_BEGIN, CALL_END))
-		elseif ==(@token, CALL_END)
+		if     ==(@token, EXPR_BEGIN)
+			push!(args, _meta_expr(tokens, EXPR_BEGIN, EXPR_END))
+		elseif ==(@token, EXPR_END)
 			@next
 			break
 		else #token is a value
@@ -161,10 +122,15 @@ end
 		end
 	end
 
-	return Expr(:call, Symbol(name), args...)
+	if args[1] ∈ (:..., :->) # non-call expressions
+		return Expr(args...)
+	else
+		@log "ASSUMING CALL"
+		return Expr(:call, args...)
+	end
 end
-function _meta_call(tokens::Tokens) #!!!!
-	_meta_call(tokens, "(", ")")
+function _meta_expr(tokens::Tokens) #!!!!
+	_meta_expr(tokens, "(", ")")
 end
 
 @logged function _meta_value(tokens::Tokens)::Value
@@ -222,5 +188,5 @@ end
 #   - one can model the state machine as a set of permutations -- for example 'a' -- which maps one state (modeled as integers) to another
 # - implement loops, anonymous functions (->), ranges and so on
 #   - generalize expressions so as to include non-calls, like anonymous functions
-# - replace func(tokens, "begin", "("...) with a single dictionary of sybols func(tokens, sym_map), where sym_map = {CALL_BEGIN => "("...}
+# - replace func(tokens, "begin", "("...) with a single dictionary of sybols func(tokens, sym_map), where sym_map = {EXPR_BEGIN => "("...}
 # - rename _meta_X function names
