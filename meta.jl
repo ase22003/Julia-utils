@@ -24,14 +24,14 @@ end
 
 tokenize(str::String, str_filter::Function = x->replace(x, '\n'=>' '))::Tokens = filter!(x->x!="", split(str → str_filter, ' ')) → reverse
 
-@logged function _meta_block(tokens::Tokens, BLOCK_BEGIN::String, BLOCK_END::String)::Expr
+@logged function _meta_block(tokens::Tokens)::Expr
 	@ignore tokens
-	@ignore BLOCK_BEGIN
-	@ignore BLOCK_END
+	@ignore "begin"
+	@ignore "end"
 	if length(tokens) == 0
 		return :(nothing)
 	end
-	if ==(@token, BLOCK_BEGIN)
+	if ==(@token, "begin")
 		@next
 	end
 	statements::Vector{Expr} = []
@@ -40,32 +40,32 @@ tokenize(str::String, str_filter::Function = x->replace(x, '\n'=>' '))::Tokens =
 		@log tokens
 		if length(tokens) == 0
 			break
-		elseif ==(@token, BLOCK_BEGIN)
-			push!(statements, _meta_block(tokens, BLOCK_BEGIN, BLOCK_END))
-		elseif ==(@token, BLOCK_END)
+		elseif ==(@token, "begin")
+			push!(statements, _meta_block(tokens))
+		elseif ==(@token, "end")
 			@next
 			break
 		elseif ==(@token, "function")
 			@log "FUNCTION"
 			@next
-			sig   = _meta_expr(tokens) # ARG!!!!!
-			block = _meta_block(tokens) # ARG!!!!!
+			sig   = _meta_expr(tokens)
+			block = _meta_block(tokens)
 			push!(statements, Expr(:function, sig, block))
 		elseif ==(@token, "return")
 			@log "RETURN"
 			@next
-			push!(statements, Expr(:return, _meta_expr(tokens))) # ARG!!!!!
+			push!(statements, Expr(:return, _meta_expr(tokens)))
 		elseif ==(@token, "assign")
 			@log "ASSIGNMENT"
 			@next
-			if ==(@token, "(") # !!!!!
-				name = _meta_expr(tokens) # ARG!!!!!
+			if ==(@token, "(")
+				name = _meta_expr(tokens)
 			else
 				name = _meta_value(tokens)
 				@next
 			end
-			if ==(@token, "(") # !!!!!
-				value = _meta_expr(tokens) # ARG!!!!!
+			if ==(@token, "(")
+				value = _meta_expr(tokens)
 			else
 				value = _meta_value(tokens)
 				@next
@@ -75,19 +75,19 @@ tokenize(str::String, str_filter::Function = x->replace(x, '\n'=>' '))::Tokens =
 		elseif ==(@token, "for")
 			@log "'FOR' LOOP"
 			@next
-			iter  = _meta_expr(tokens) # ARG!!!!!
-			block = _meta_block(tokens) # ARG!!!!!
+			iter  = _meta_expr(tokens)
+			block = _meta_block(tokens)
 			push!(statements, Expr(:for, iter, block))
 		=#
 		elseif ==(@token, "while")
 			@log "'WHILE' LOOP"
 			@next
-			cond  = _meta_expr(tokens) # ARG!!!!!
-			block = _meta_block(tokens) # ARG!!!!!
+			cond  = _meta_expr(tokens)
+			block = _meta_block(tokens)
 			push!(statements, Expr(:while, cond, block))
 		else
 			@log "ASSUMING EXPR"
-			push!(statements, _meta_expr(tokens)) # ARG!!!!!
+			push!(statements, _meta_expr(tokens))
 		end
 	end
 	return Expr(:block, statements...)
@@ -96,41 +96,37 @@ function _meta_block(tokens::Tokens)
 	_meta_block(tokens, "begin", "end")
 end
 
-@logged function _meta_expr(tokens::Tokens, EXPR_BEGIN::String, EXPR_END::String)::Expr
+@logged function _meta_expr(tokens::Tokens)::Expr
 	@ignore tokens
-	@ignore EXPR_BEGIN
-	@ignore EXPR_END
 	if length(tokens) == 0
 		#error("there are no tokens to parse")
 		return :(nothing)
 	end
-	if !=(@token, EXPR_BEGIN)
-		error("expression must begin with '$EXPR_BEGIN' -- cannot begin with '$(@token)'")
+	if !=(@token, "(")
+		error("expression must begin with '(' -- cannot begin with '$(@token)'")
 	end
 	@next
 	args::Vector{Value} = []
 	while true
 		@log @token
-		if     ==(@token, EXPR_BEGIN)
-			push!(args, _meta_expr(tokens, EXPR_BEGIN, EXPR_END))
-		elseif ==(@token, EXPR_END)
+		if     ==(@token, "(")
+			push!(args, _meta_expr(tokens))
+		elseif ==(@token, ")")
 			@next
 			break
-		else #token is a value
+		else # token is a value
 			push!(args, _meta_value(tokens))
 			@next
 		end
 	end
 
-	if args[1] ∈ (:..., :->) # non-call expressions
+	if args[1] ∈ (:..., :->, :(::)) # non-call expressions
+		@log "NON-CALL EXPRESSION"
 		return Expr(args...)
 	else
 		@log "ASSUMING CALL"
 		return Expr(:call, args...)
 	end
-end
-function _meta_expr(tokens::Tokens) #!!!!
-	_meta_expr(tokens, "(", ")")
 end
 
 @logged function _meta_value(tokens::Tokens)::Value
@@ -188,5 +184,3 @@ end
 #   - one can model the state machine as a set of permutations -- for example 'a' -- which maps one state (modeled as integers) to another
 # - implement loops, anonymous functions (->), ranges and so on
 #   - generalize expressions so as to include non-calls, like anonymous functions
-# - replace func(tokens, "begin", "("...) with a single dictionary of sybols func(tokens, sym_map), where sym_map = {EXPR_BEGIN => "("...}
-# - rename _meta_X function names
