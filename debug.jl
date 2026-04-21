@@ -125,5 +125,4 @@ function _debug_log(msgs...)
 end
 
 # TODO:
-# - add argument printout to function calls
-# - add campatibillity with type declarations f(x::Int64)
+# - add a way to toggle categories of logs, such as for files or between flags
