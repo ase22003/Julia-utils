@@ -1,5 +1,6 @@
-include("utils.jl")
-include("debug.jl")
+#needs "utils.jl" "debug.jl" ?"meta.jl"?
+
+@START_OF_DEBUG_CATEGORY "gen"
 
 using Random: shuffle
 
@@ -227,6 +228,6 @@ språk = Dict(
 )
 #}}}
 
-
+@END_OF_DEBUG_CATEGORY
 
 #mönstermatchning? -- med regex? med syntax? med godtycklig regel!?

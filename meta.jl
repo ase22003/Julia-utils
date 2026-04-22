@@ -1,5 +1,6 @@
-include("debug.jl")
-include("utils.jl")
+#needs "utils.jl" "debug.jl"
+
+@START_OF_DEBUG_CATEGORY "meta"
 
 Token = SubString{String}
 Tokens = Vector{Token}
@@ -7,7 +8,7 @@ Index = UInt64
 Evaluable = Union{Expr, Symbol}
 Value = Union{Symbol, Int64, Float16, String, Char, Expr}
 
-macro token()
+macro _token()
 	quote
 		(x -> begin
 				if length(tokens) == 0
@@ -18,7 +19,7 @@ macro token()
 		)(nothing)
 	end → esc
 end
-macro next()
+macro _next()
 	:(pop!(tokens)) → esc
 end
 
@@ -31,8 +32,8 @@ tokenize(str::String, str_filter::Function = x->replace(x, '\n'=>' '))::Tokens =
 	if length(tokens) == 0
 		return :(nothing)
 	end
-	if ==(@token, "begin")
-		@next
+	if ==(@_token, "begin")
+		@_next
 	end
 	statements::Vector{Expr} = []
 	while true
@@ -40,48 +41,48 @@ tokenize(str::String, str_filter::Function = x->replace(x, '\n'=>' '))::Tokens =
 		@log tokens
 		if length(tokens) == 0
 			break
-		elseif ==(@token, "begin")
+		elseif ==(@_token, "begin")
 			push!(statements, _meta_block(tokens))
-		elseif ==(@token, "end")
-			@next
+		elseif ==(@_token, "end")
+			@_next
 			break
-		elseif ==(@token, "function")
+		elseif ==(@_token, "function")
 			@log "FUNCTION"
-			@next
+			@_next
 			sig   = _meta_expr(tokens)
 			block = _meta_block(tokens)
 			push!(statements, Expr(:function, sig, block))
-		elseif ==(@token, "return")
+		elseif ==(@_token, "return")
 			@log "RETURN"
-			@next
+			@_next
 			push!(statements, Expr(:return, _meta_expr(tokens)))
-		elseif ==(@token, "assign")
+		elseif ==(@_token, "assign")
 			@log "ASSIGNMENT"
-			@next
-			if ==(@token, "(")
+			@_next
+			if ==(@_token, "(")
 				name = _meta_expr(tokens)
 			else
 				name = _meta_value(tokens)
-				@next
+				@_next
 			end
-			if ==(@token, "(")
+			if ==(@_token, "(")
 				value = _meta_expr(tokens)
 			else
 				value = _meta_value(tokens)
-				@next
+				@_next
 			end
 			push!(statements, Expr(:(=), name, value))
 		#= problem with scope, UndefVarError
-		elseif ==(@token, "for")
+		elseif ==(@_token, "for")
 			@log "'FOR' LOOP"
-			@next
+			@_next
 			iter  = _meta_expr(tokens)
 			block = _meta_block(tokens)
 			push!(statements, Expr(:for, iter, block))
 		=#
-		elseif ==(@token, "while")
+		elseif ==(@_token, "while")
 			@log "'WHILE' LOOP"
-			@next
+			@_next
 			cond  = _meta_expr(tokens)
 			block = _meta_block(tokens)
 			push!(statements, Expr(:while, cond, block))
@@ -92,9 +93,6 @@ tokenize(str::String, str_filter::Function = x->replace(x, '\n'=>' '))::Tokens =
 	end
 	return Expr(:block, statements...)
 end
-function _meta_block(tokens::Tokens)
-	_meta_block(tokens, "begin", "end")
-end
 
 @logged function _meta_expr(tokens::Tokens)::Expr
 	@ignore tokens
@@ -102,57 +100,59 @@ end
 		#error("there are no tokens to parse")
 		return :(nothing)
 	end
-	if !=(@token, "(")
-		error("expression must begin with '(' -- cannot begin with '$(@token)'")
+	if !=(@_token, "(")
+		error("expression must begin with '(' -- cannot begin with '$(@_token)'")
 	end
-	@next
+	@_next
 	args::Vector{Value} = []
 	while true
-		@log @token
-		if     ==(@token, "(")
+		@log @_token
+		if     ==(@_token, "(")
 			push!(args, _meta_expr(tokens))
-		elseif ==(@token, ")")
-			@next
+		elseif ==(@_token, ")")
+			@_next
 			break
 		else # token is a value
 			push!(args, _meta_value(tokens))
-			@next
+			@_next
 		end
 	end
 
 	if args[1] ∈ (:..., :->, :(::)) # non-call expressions
 		@log "NON-CALL EXPRESSION"
 		return Expr(args...)
+	elseif args[1] == '@'
+		@log "MACRO CALL"
+		return Expr(:macrocall, args...)
 	else
-		@log "ASSUMING CALL"
 		return Expr(:call, args...)
 	end
 end
 
 @logged function _meta_value(tokens::Tokens)::Value
 	@ignore tokens
-	@log @token
+	@log @_token
 	try
-		r = parse(Int64, @token)
+		r = parse(Int64, @_token)
 		@log "integer"
 		return r
 	catch
 	end
 	try
-		r = parse(Float16, @token)
+		r = parse(Float16, @_token)
 		@log "float"
 		return r
 	catch
 	end
 	try
 		for d ∈ ('\'', '\"')
-			if (@token)[1] == d && (@token)[end] == d
+			if (@_token)[1] == d && (@_token)[end] == d
 				if d == '\''
-					r = (@token)[2]
+					r = (@_token)[2]
 					@log "character"
 					return r
 				else
-					r = String(split(@token, d)[2])
+					r = String(split(@_token, d)[2])
 					@log "string"
 					return r
 				end
@@ -161,7 +161,7 @@ end
 	catch
 	end
 	@log "symbol"
-	return Symbol(@token)
+	return Symbol(@_token)
 end
 
 macro run_meta_string(s::String)
@@ -178,6 +178,7 @@ macro run_meta_string(s::Evaluable, BEGIN::String, END::String)
 	_meta_block(tokenize(eval(s)), BEGIN, END) → esc
 end
 
+@END_OF_DEBUG_CATEGORY
 
 # TODO:
 # - make a better tokenizer that can split up expressions like: "(+ 3 4)"

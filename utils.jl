@@ -1,3 +1,7 @@
+#needs "debug.jl"
+
+@START_OF_DEBUG_CATEGORY "utils"
+
 #{{{SET_TYPES
 SET_TYPES = [
 	Set,
@@ -21,16 +25,15 @@ SET_TYPES = [
 → = |>
 #}}}
 #{{{UI
-input(prompt::String)::String = begin
+@logged function input(prompt::String = "")::String
 	print(prompt)
-	readline()
+	return readline()
 end
-input()::String = readline()
 #}}}
 #{{{∃
 for type ∈ SET_TYPES
 	eval(quote
-			function ∃(cond::Function, S::$type)
+			@logged function ∃(cond::Function, S::$type)::Bool
 				for e ∈ S
 					cond(e) && return true
 				end
@@ -45,10 +48,10 @@ end
 #}}}
 #{{{∀
 for type ∈ SET_TYPES
-	eval(:(∀(cond::Function, S::$type) = !∃(!cond, S)))
+	eval(:(@logged function ∀(cond::Function, S::$type); return !∃(!cond, S); end))
 end
 
-macro ∀(elem, cond, S)
+@logged macro ∀(elem, cond, S)
 	return :(!(@∃ $elem !($cond) $S))
 end
 #}}}
@@ -57,3 +60,5 @@ function ○(f::Function, n::Int)::Function
 	∘([f for i in 1:n]...)
 end
 #}}}
+
+@END_OF_DEBUG_CATEGORY

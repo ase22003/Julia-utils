@@ -1,3 +1,5 @@
+printstyled("--- INITIATING DEBUG SYSTEM ---\n", color=:yellow)
+
 Evaluable = Union{Expr, Symbol}
 
 mutable struct Debug
@@ -10,7 +12,7 @@ end
 
 global DEBUG_LEVEL = Debug(0)
 global DEBUG_DO_PRINT = true
-const DEBUG_LOG_FILE_NAME = ".julia_debug_log"
+const  DEBUG_LOG_FILE_NAME = ".julia_debug_log"
 
 #{{{TEMPORARY
 debug_file = open(DEBUG_LOG_FILE_NAME, "w")
@@ -18,8 +20,30 @@ write(debug_file, "")
 close(debug_file)
 #}}}
 
+global DEBUG_CURRENT_CATEGORY::String = "default"
+global DEBUG_ENABLED_CATEGORIES::Set{String} = Set(["default"])
+
+macro START_OF_DEBUG_CATEGORY(name::String)
+	printstyled("--- NOW REGISTERING FUNCTIONS UNDER '$name' ---\n", color=:yellow)
+	:(DEBUG_CURRENT_CATEGORY = $name) |> esc
+end
+macro END_OF_DEBUG_CATEGORY()
+	printstyled("--- NOW REGISTERING FUNCTIONS UNDER 'default' ---\n", color=:yellow)
+	:(DEBUG_CURRENT_CATEGORY = "default") |> esc
+end
+macro ENABLE_DEBUG_CATEGORY(name::String)
+	:(push!(DEBUG_ENABLED_CATEGORIES, $name))
+end
+macro DISABLE_DEBUG_CATEGORY(name::String)
+	:(delete!(DEBUG_ENABLED_CATEGORIES, $name))
+end
+
+function _add_debug_category_check(log_expr::Expr)
+	Expr(:if, Expr(:call, :∈, DEBUG_CURRENT_CATEGORY, :DEBUG_ENABLED_CATEGORIES), log_expr)
+end
+
 macro log(msg::String)
-	Expr(:call, :_debug_log, "(LOG) «", msg, '»')
+	Expr(:call, :_debug_log, "(LOG) «", msg, '»') → _add_debug_category_check
 end
 macro log(val::Evaluable, str::String)
 	Expr(:call, :_debug_log, replace(string("($str) $val = "), r"#=(?s).*?=# " => ""), val)
@@ -32,8 +56,8 @@ macro ignore(arg) #used within @logged
 	:(nothing)
 end
 macro logged(func)
-	if func.head != :function
-		error("@logged used without a following function definition")
+	if func.head ∉ (:function, :macro)
+		error("@logged used without a following function or macro definition")
 	end
 
 	     sig::Expr   = func.args[1]
@@ -42,6 +66,8 @@ macro logged(func)
 	    name::Symbol = sig_expr.args[1]
 
 	args::Set{Symbol} = Set(sig_expr.args[2:end] .|> x -> typeof(x) == Symbol ? x : _get_sig_expr(x).args[1])
+
+	#{{{register @ignore statements
 	for stmt ∈ body.args
 		if typeof(stmt) == Expr
 			if stmt.head == :macrocall
@@ -59,18 +85,22 @@ macro logged(func)
 			end
 		end
 	end
+	#}}}
+
+	_add_category_checks_to_logs(body)
 
 	_debug_replace_returns(body, name)
 
 	prod =	Expr(:function, sig,
 				Expr(:block,
-					Expr(:call, :_debug_func_stack_call, QuoteNode(name)),
-					(args .|> x->:(@log $x "ARG"))...,
+					Expr(:call, :_debug_func_stack_call, QuoteNode(name)) → _add_debug_category_check,
+					(args .|> x->(:(@log $x "ARG") → _add_debug_category_check))...,
 					body
 				)
 			)
 
 	_debug_log("LOGGED: $name")
+	println(prod)
 	return prod
 end
 
@@ -79,6 +109,18 @@ function _get_sig_expr(e::Expr)::Expr
 		return e
 	else
 		return _get_sig_expr(e.args[1])
+	end
+end
+
+function _add_category_checks_to_logs(code::Expr)
+	for (i, expr) ∈ enumerate(code.args)
+		if typeof(expr) == Expr
+			if (expr.head == :macrocall) && (expr.args[1] == Symbol("@log"))
+				code.args[i] = expr → _add_debug_category_check
+			else
+				_add_category_checks_to_logs(code.args[i])
+			end
+		end
 	end
 end
 
@@ -91,7 +133,7 @@ function _debug_replace_returns(code::Expr, func_name::Symbol)
 		new_asgn = :(_debug_return = $(ret_stmt.args[1]))
 		code.head = :block
 		code.args[1] = new_asgn
-		push!(code.args, Expr(:call, :_debug_print_return_value, :_debug_return, QuoteNode(func_name)))
+		push!(code.args, Expr(:call, :_debug_print_return_value, :_debug_return, QuoteNode(func_name)) → _add_debug_category_check)
 		push!(code.args, :(return _debug_return))
 	else
 		for arg in code.args
