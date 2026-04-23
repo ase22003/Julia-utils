@@ -1,0 +1,272 @@
+\documentclass[12pt,b5paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{xparse}
+\usepackage{comment}
+\author{h}
+\begin{document}
+
+%{{{
+\begin{comment}
+\ExplSyntaxOn
+
+\NewDocumentCommand{\vect}{m}
+ {
+  \left\langle \clist_use:Nn \l__vect_tmp_clist { , } \right\rangle
+ }
+
+\clist_new:N \l__vect_tmp_clist
+
+\RenewDocumentCommand{\vect}{m}
+ {
+  \clist_set:Nn \l__vect_tmp_clist { #1 }
+  \left\langle \clist_use:Nn \l__vect_tmp_clist { , } \right\rangle
+ }
+\ExplSyntaxOff
+
+
+
+\ExplSyntaxOn
+
+\NewDocumentCommand{\set}{m}
+ {
+ \left\{ \clist_use:Nn \l__set_tmp_clist { , } \right\}
+ }
+
+\clist_new:N \l__set_tmp_clist
+
+\RenewDocumentCommand{\set}{m}
+ {
+  \clist_set:Nn \l__set_tmp_clist { #1 }
+  \left\{ \clist_use:Nn \l__set_tmp_clist { , } \right\}
+ }
+\ExplSyntaxOff
+\end{comment}
+%}}}
+\newcommand{\vect}[1]{\left\langle #1 \right\rangle}
+\newcommand{\svect}[1]{\begin{pmatrix} #1 \end{pmatrix}}
+\newcommand{\set}[1]{\left\{ #1 \right\}}
+\newcommand{\setdef}[2]{\set{#1 \,\middle|\, #2}}
+
+\section{Data Generation}
+
+\subsection{Pattern Matching}
+
+A \textit{pattern} is a map \(\mathfrak{P} : D \to \{\top, \bot\}\), for any set \(D\). A \textit{classification} is a map \(C : D \to \mathcal{P}(P)\), where \(P\) is a set of patterns and
+%\(C(d) = M\) where \(d\in D\) 
+%%, \(M\in\mathcal{P}(P)\) 
+%and \(\forall p\in M\,\left(p(d)\right)\).
+\(C(d) = M \implies \forall p\in M\,\left(p(d)\right)\), where \(d\in D\).
+
+No.
+
+A \textit{pattern} is a set \(p\). If a set, vector, element (or other data) \(d\) maches the pattern \(p\), then \(\Omega \in p\). The set \(\left\{p\,\middle|\,\Omega\in p\right\}\) is the set of patterns to which some data \(\Omega\) belongs.
+\[
+\begin{array}{ccl}
+	\mathfrak{E} & := & \setdef{\Omega\in D}{\Omega\in\mathfrak{T} \lor \left(\Omega=\vect{\omega_1, \cdots, \omega_n, \text{``\(+\)''}, \omega_k, \cdots, \omega_j} \land \set{\vect{\omega_1, \cdots, \omega_n}, \vect{\omega_k, \cdots, \omega_j}} \subseteq \mathfrak{E}\right)} \\
+	& = & \setdef{\Omega\in D}{\Omega\in\mathfrak{T} \lor \left(\Omega\in\setdef{\vect{\omega_1, \cdots, \omega_n, \text{``\(+\)''}, \omega_k, \cdots, \omega_j}\in D}{\set{\vect{\omega_1, \cdots, \omega_n}, \vect{\omega_k, \cdots, \omega_j}} \subseteq \mathfrak{E}}\right)} \\
+	& = & \setdef{\Omega\in D}{\Omega\in\mathfrak{T} \cup \setdef{\vect{\omega_1, \cdots, \omega_n, \text{``\(+\)''}, \omega_k, \cdots, \omega_j}}{\set{\vect{\omega_1, \cdots, \omega_n}, \vect{\omega_k, \cdots, \omega_j}} \subseteq \mathfrak{E}}} \\
+	& = & \mathfrak{T} \cup \setdef{\vect{\omega_1, \cdots, \omega_n, \text{``\(+\)''}, \omega_k, \cdots, \omega_j}\in D}{\set{\vect{\omega_1, \cdots, \omega_n}, \vect{\omega_k, \cdots, \omega_j}} \subseteq \mathfrak{E}} \\
+	\mathfrak{T} & := & \setdef{\Omega\in D}{\Omega\in\mathfrak{F} \lor \left(\Omega=\vect{\omega_1, \cdots, \omega_n, \text{``\(\times\)''}, \omega_k, \cdots, \omega_j} \land \set{\vect{\omega_1, \cdots, \omega_n}, \vect{\omega_k, \cdots, \omega_j}} \subseteq \mathfrak{T}\right)} \\
+	\mathfrak{F} & := & \setdef{\Omega\in D}{\Omega\in\mathfrak{N} \lor \left(\Omega=\vect{\text{``(''}, \omega_1, \cdots, \omega_n, \text{``)''}} \land \vect{\omega_1, \cdots, \omega_n} \in \mathfrak{E}\right)} \\
+	\mathfrak{N} & := & \setdef{\Omega\in D}{\Omega \in \set{\text{``0''}, \cdots, \text{``9''}} \lor \left( \Omega = \vect{\omega_1, \omega_2, \cdots, \omega_n} \wedge \omega_1\in\mathfrak{N} \wedge \vect{\omega_2, \cdots, \omega_n}\in\mathfrak{N}\right)} \\
+	%\mathfrak{N} & := & \setdef{\Omega\in D}{\Omega \in \set{\text{``0''}, \cdots, \text{``9''}} \lor \Omega\in\mathfrak{N}}
+\end{array}
+\]
+
+%{{{
+\begin{comment}
+\[
+	\mathfrak{E} & := \setdef{\Omega\in D}{\Omega\in\mathfrak{T} \lor \left(\Omega=\svect{\omega_1\\ \cdots\\ \omega_n\\ \text{``\(+\)''}\\ \omega_k\\ \cdots\\ \omega_j} \land \set{\svect{\omega_1\\ \cdots\\ \omega_n}\\ \svect{\omega_k\\ \cdots\\ \omega_j}} \subseteq \mathfrak{E}\right)} \\
+\]
+\[
+	\mathfrak{T} & := \setdef{\Omega\in D}{\Omega\in\mathfrak{F} \lor \left(\Omega=\svect{\omega_1\\ \cdots\\ \omega_n\\ \text{``\(\times\)''}\\ \omega_k\\ \cdots\\ \omega_j} \land \set{\svect{\omega_1\\ \cdots\\ \omega_n}\\ \svect{\omega_k\\ \cdots\\ \omega_j}} \subseteq \mathfrak{T}\right)} \\
+\]
+\[
+	\mathfrak{F} & := \setdef{\Omega\in D}{\Omega\in\mathfrak{N} \lor \left(\Omega=\svect{\text{``(''}\\ \omega_1\\ \cdots\\ \omega_n\\ \text{``)''}} \land \svect{\omega_1\\ \cdots\\ \omega_n} \in \mathfrak{E}\right)} \\
+\]
+\[
+	\mathfrak{N} & := \setdef{\Omega\in D}{\Omega \in \set{\text{``0''}\\ \cdots\\ \text{``9''}} \lor \left( \Omega = \svect{\omega_1\\ \omega_2\\ \cdots\\ \omega_n} \wedge \omega_1\in\mathfrak{N} \wedge \svect{\omega_2\\ \cdots\\ \omega_n}\in\mathfrak{N}\right)}
+\]
+\end{comment}
+%}}}
+
+\subsubsection{Example}
+
+\[
+	\mathfrak{P}(\Omega) = \left\{
+		\begin{array}{cl}
+			\top & : \Omega \in \set{\text{``Yes''}, \text{``Yeah''}} \\
+			\bot & : \Omega \in \set{\text{``No''}, \text{``Nah''}}
+		\end{array}
+	\right.
+\]
+
+\subsubsection{Example}
+\[
+\begin{array}{cl}
+	\mathfrak{E}(\Omega) = &\left\{
+		\begin{array}{cl}
+			\top & : {\begin{array}{cl}
+				     & \Omega = \vect{\omega_1, \cdots, \omega_n, \text{``\(+\)''}, \omega_k, \cdots, \omega_j} \wedge \mathfrak{E}\left(\vect{\omega_1, \cdots, \omega_n}\right) \wedge \mathfrak{E}\left(\vect{\omega_k, \cdots, \omega_j}\right) \\
+				\vee & \mathfrak{T}(\Omega)
+			\end{array}} \\
+			\bot & : \text{otherwise}
+		\end{array}
+	\right. \\
+	\mathfrak{T}(\Omega) = &\left\{
+		\begin{array}{cl}
+			\top & : {\begin{array}{cl}
+				     & \Omega = \vect{\omega_1, \cdots, \omega_n, \text{``\(\times\)''}, \omega_k, \cdots, \omega_j} \wedge \mathfrak{T}\left(\vect{\omega_1, \cdots, \omega_n}\right) \wedge \mathfrak{T}\left(\vect{\omega_k, \cdots, \omega_j}\right) \\
+				\vee & \mathfrak{F}(\Omega)
+			\end{array}} \\
+			\bot & : \text{otherwise}
+		\end{array}
+	\right. \\
+	\mathfrak{F}(\Omega) = &\left\{
+		\begin{array}{cl}
+			\top & : {\begin{array}{cl}
+				     & \Omega = \vect{\text{``(''}, \omega_1, \cdots, \omega_n, \text{``)''}} \wedge  \mathfrak{E}\left(\vect{\omega_1, \cdots, \omega_n}\right) \\
+				\vee & \mathfrak{N}\vect{\Omega}
+			\end{array}} \\
+			\bot & : \text{otherwise}
+		\end{array}
+	\right. \\
+	\mathfrak{N}(\Omega) = &\left\{
+		\begin{array}{cl}
+			\top & : {\begin{array}{cl}
+				     & \Omega \in \set{\text{``0''}, \text{``1''}, \text{``2''}, \cdots, \text{``9''}} \\
+				%\vee & \forall \omega\in\Omega\ \vect{\mathfrak{N}(\omega)}
+				\vee & \Omega = \vect{\omega_1, \omega_2, \cdots, \omega_n} \wedge \mathfrak{N}(\omega_1) \wedge \mathfrak{N}\left(\vect{\omega_2, \cdots, \omega_n}\right)
+			\end{array}} \\
+			\bot & : \text{otherwise}
+		\end{array}
+	\right. \\
+\end{array}
+\]
+
+%{{{
+\begin{comment}
+%\usepackage{amsmath,amssymb}
+%\newcommand{\vect}[1]{\langle #1\rangle}
+
+
+
+\[
+\begin{aligned}
+\mathfrak{E}(\Omega)&=
+\begin{cases}
+1, & \text{if }\; \Omega=\vect{\omega_1,\dots,\omega_n,\text{``+''},\omega_k,\dots,\omega_j}
+\\
+&\qquad\text{and }\; \mathfrak{E}\big(\vect{\omega_1,\dots,\omega_n}\big)=1
+\\
+&\qquad\text{and }\; \mathfrak{E}\big(\vect{\omega_k,\dots,\omega_j}\big)=1
+&\quad\text{or }\; \mathfrak{T}(\Omega)=1,\
+0, & \text{otherwise},
+\end{cases}\\
+\mathfrak{T}(\Omega)&=
+\begin{cases}
+1, & \text{if }\; \Omega=\vect{\omega_1,\dots,\omega_n,\text{``$\times$''},\omega_k,\dots,\omega_j}
+\\
+&\qquad\text{and }\; \mathfrak{T}\big(\vect{\omega_1,\dots,\omega_n}\big)=1
+\\
+&\qquad\text{and }\; \mathfrak{T}\big(\vect{\omega_k,\dots,\omega_j}\big)=1
+\
+&\quad\text{or }\; \mathfrak{F}(\Omega)=1,\
+0, & \text{otherwise},
+\end{cases}\\
+\mathfrak{F}(\Omega)&=
+\begin{cases}
+1, & \text{if }\; \Omega=\vect{\text{``(''},\omega_1,\dots,\omega_n,\text{``)''}}
+\\
+&\qquad\text{and }\; \mathfrak{E}\big(\vect{\omega_1,\dots,\omega_n}\big)=1
+\
+&\quad\text{or }\; \mathfrak{N}(\Omega)=1,\
+0, & \text{otherwise},
+\end{cases}\\
+\mathfrak{N}(\Omega)&=
+\begin{cases}
+1, & \text{if }\; \Omega\in\{0,1,\dots,9\}
+\
+&\quad\text{or }\; \Omega=\vect{\omega_1,\omega_2,\dots,\omega_n}
+\text{ and } \mathfrak{N}(\omega_1)=1
+\\
+&\qquad\text{and }\; \mathfrak{N}\big(\vect{\omega_2,\dots,\omega_n}\big)=1,\
+0, & \text{otherwise}.
+\end{cases}
+\end{aligned}
+\]
+
+
+
+
+
+\[
+\begin{aligned}
+\mathfrak{E}(\Omega)\ &\Leftrightarrow\
+\bigl(\Omega=\vect{\omega_1,\dots,\omega_n,\text{``+''},\omega_k,\dots,\omega_j}
+\land \mathfrak{E}(\vect{\omega_1,\dots,\omega_n})
+\land \mathfrak{E}(\vect{\omega_k,\dots,\omega_j})\bigr)
+\ \lor\ \mathfrak{T}(\Omega),\\
+\mathfrak{T}(\Omega)\ &\Leftrightarrow\
+\bigl(\Omega=\vect{\omega_1,\dots,\omega_n,\text{``$\times$''},\omega_k,\dots,\omega_j}
+\land \mathfrak{T}(\vect{\omega_1,\dots,\omega_n})
+\land \mathfrak{T}(\vect{\omega_k,\dots,\omega_j})\bigr)
+\ \lor\ \mathfrak{F}(\Omega),\\
+\mathfrak{F}(\Omega)\ &\Leftrightarrow\
+\bigl(\Omega=\vect{\text{``(''},\omega_1,\dots,\omega_n,\text{``)''}}
+\land \mathfrak{E}(\vect{\omega_1,\dots,\omega_n})\bigr)
+\ \lor\ \mathfrak{N}(\Omega),\\
+\mathfrak{N}(\Omega)\ &\Leftrightarrow\
+\bigl(\Omega\in\{0,1,\dots,9\}\bigr)
+\ \lor\ \bigl(\Omega=\vect{\omega_1,\dots,\omega_n}\land \mathfrak{N}(\omega_1)\land \mathfrak{N}(\vect{\omega_2,\dots,\omega_n})\bigr).
+\end{aligned}
+\]
+
+
+%\newcommand{\vect}[1]{\langle #1\rangle}
+
+
+
+\[
+\begin{aligned}
+\mathfrak{E}(\Omega)\ &\Leftrightarrow\ 
+\bigl(\exists\,\omega_1,\dots,\omega_n,\omega_k,\dots,\omega_j:\;
+\Omega=\vect{\omega_1,\dots,\omega_n,\text{``+''},\omega_k,\dots,\omega_j}\\
+&\qquad\qquad\qquad\qquad\qquad\qquad
+\land\ \mathfrak{E}(\vect{\omega_1,\dots,\omega_n})
+\land\ \mathfrak{E}(\vect{\omega_k,\dots,\omega_j})\bigr)
+\ \lor\ \mathfrak{T}(\Omega),\\
+\mathfrak{T}(\Omega)\ &\Leftrightarrow\ 
+\bigl(\exists\,\omega_1,\dots,\omega_n,\omega_k,\dots,\omega_j:\;
+\Omega=\vect{\omega_1,\dots,\omega_n,\text{``$\times$''},\omega_k,\dots,\omega_j}\\
+&\qquad\qquad\qquad\qquad\qquad\qquad
+\land\ \mathfrak{T}(\vect{\omega_1,\dots,\omega_n})
+\land\ \mathfrak{T}(\vect{\omega_k,\dots,\omega_j})\bigr)
+\ \lor\ \mathfrak{F}(\Omega),\\
+\mathfrak{F}(\Omega)\ &\Leftrightarrow\ 
+\bigl(\exists\,\omega_1,\dots,\omega_n:\;
+\Omega=\vect{\text{``(''},\omega_1,\dots,\omega_n,\text{``)''}}
+\land\ \mathfrak{E}(\vect{\omega_1,\dots,\omega_n})\bigr)
+\ \lor\ \mathfrak{N}(\Omega),\\
+\mathfrak{N}(\Omega)\ &\Leftrightarrow\ 
+\bigl(\Omega\in\{0,1,\dots,9\}\bigr)
+\ \lor\ \bigl(\exists\,\omega_1,\omega_2,\dots,\omega_n:\;
+\Omega=\vect{\omega_1,\omega_2,\dots,\omega_n}\\
+&\qquad\qquad\qquad\qquad\qquad\qquad
+\land\ \mathfrak{N}(\omega_1)
+\land\ \mathfrak{N}(\vect{\omega_2,\dots,\omega_n})\bigr).
+\end{aligned}
+\]
+%}}}
+\end{comment}
+
+
+
+
+
+
+
+\end{document}

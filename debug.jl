@@ -24,11 +24,11 @@ global DEBUG_CURRENT_CATEGORY::String = "default"
 global DEBUG_ENABLED_CATEGORIES::Set{String} = Set(["default"])
 
 macro START_OF_DEBUG_CATEGORY(name::String)
-	printstyled("--- NOW REGISTERING FUNCTIONS UNDER '$name' ---\n", color=:yellow)
+	#printstyled("--- NOW REGISTERING FUNCTIONS UNDER '$name' ---\n", color=:yellow)
 	:(DEBUG_CURRENT_CATEGORY = $name) |> esc
 end
 macro END_OF_DEBUG_CATEGORY()
-	printstyled("--- NOW REGISTERING FUNCTIONS UNDER 'default' ---\n", color=:yellow)
+	#printstyled("--- NOW REGISTERING FUNCTIONS UNDER 'default' ---\n", color=:yellow)
 	:(DEBUG_CURRENT_CATEGORY = "default") |> esc
 end
 macro ENABLE_DEBUG_CATEGORY(name::String)
@@ -77,7 +77,7 @@ macro logged(func)
 							if arg ∉ args
 								error("@ignore used on a non-existent or already ignored variable '$arg'")
 							end
-							_debug_log("Ignoring argument ", arg, " in function $name")
+							_debug_log("Ignoring argument '$arg' in '$name'")
 							delete!(args, arg)
 						end
 					end
@@ -99,8 +99,7 @@ macro logged(func)
 				)
 			)
 
-	_debug_log("LOGGED: $name")
-	println(prod)
+	_debug_log("Logged '$name' under '$DEBUG_CURRENT_CATEGORY'")
 	return prod
 end
 
