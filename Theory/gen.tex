@@ -53,28 +53,15 @@
 \section{Data Generation}
 
 \subsection{Pattern Matching}
-
-A \textit{pattern} is a map \(\mathfrak{P} : D \to \{\top, \bot\}\), for any set \(D\). A \textit{classification} is a map \(C : D \to \mathcal{P}(P)\), where \(P\) is a set of patterns and
+%{{{
+%A \textit{pattern} is a map \(\mathfrak{P} : D \to \{\top, \bot\}\), for any set \(D\). A \textit{classification} is a map \(C : D \to \mathcal{P}(P)\), where \(P\) is a set of patterns and
 %\(C(d) = M\) where \(d\in D\) 
 %%, \(M\in\mathcal{P}(P)\) 
 %and \(\forall p\in M\,\left(p(d)\right)\).
-\(C(d) = M \implies \forall p\in M\,\left(p(d)\right)\), where \(d\in D\).
-
-No.
+%\(C(d) = M \implies \forall p\in M\,\left(p(d)\right)\), where \(d\in D\).
+%}}}
 
 A \textit{pattern} is a set \(p\). If a set, vector, element (or other data) \(d\) maches the pattern \(p\), then \(\Omega \in p\). The set \(\left\{p\,\middle|\,\Omega\in p\right\}\) is the set of patterns to which some data \(\Omega\) belongs.
-\[
-\begin{array}{ccl}
-	\mathfrak{E} & := & \setdef{\Omega\in D}{\Omega\in\mathfrak{T} \lor \left(\Omega=\vect{\omega_1, \cdots, \omega_n, \text{``\(+\)''}, \omega_k, \cdots, \omega_j} \land \set{\vect{\omega_1, \cdots, \omega_n}, \vect{\omega_k, \cdots, \omega_j}} \subseteq \mathfrak{E}\right)} \\
-	& = & \setdef{\Omega\in D}{\Omega\in\mathfrak{T} \lor \left(\Omega\in\setdef{\vect{\omega_1, \cdots, \omega_n, \text{``\(+\)''}, \omega_k, \cdots, \omega_j}\in D}{\set{\vect{\omega_1, \cdots, \omega_n}, \vect{\omega_k, \cdots, \omega_j}} \subseteq \mathfrak{E}}\right)} \\
-	& = & \setdef{\Omega\in D}{\Omega\in\mathfrak{T} \cup \setdef{\vect{\omega_1, \cdots, \omega_n, \text{``\(+\)''}, \omega_k, \cdots, \omega_j}}{\set{\vect{\omega_1, \cdots, \omega_n}, \vect{\omega_k, \cdots, \omega_j}} \subseteq \mathfrak{E}}} \\
-	& = & \mathfrak{T} \cup \setdef{\vect{\omega_1, \cdots, \omega_n, \text{``\(+\)''}, \omega_k, \cdots, \omega_j}\in D}{\set{\vect{\omega_1, \cdots, \omega_n}, \vect{\omega_k, \cdots, \omega_j}} \subseteq \mathfrak{E}} \\
-	\mathfrak{T} & := & \setdef{\Omega\in D}{\Omega\in\mathfrak{F} \lor \left(\Omega=\vect{\omega_1, \cdots, \omega_n, \text{``\(\times\)''}, \omega_k, \cdots, \omega_j} \land \set{\vect{\omega_1, \cdots, \omega_n}, \vect{\omega_k, \cdots, \omega_j}} \subseteq \mathfrak{T}\right)} \\
-	\mathfrak{F} & := & \setdef{\Omega\in D}{\Omega\in\mathfrak{N} \lor \left(\Omega=\vect{\text{``(''}, \omega_1, \cdots, \omega_n, \text{``)''}} \land \vect{\omega_1, \cdots, \omega_n} \in \mathfrak{E}\right)} \\
-	\mathfrak{N} & := & \setdef{\Omega\in D}{\Omega \in \set{\text{``0''}, \cdots, \text{``9''}} \lor \left( \Omega = \vect{\omega_1, \omega_2, \cdots, \omega_n} \wedge \omega_1\in\mathfrak{N} \wedge \vect{\omega_2, \cdots, \omega_n}\in\mathfrak{N}\right)} \\
-	%\mathfrak{N} & := & \setdef{\Omega\in D}{\Omega \in \set{\text{``0''}, \cdots, \text{``9''}} \lor \Omega\in\mathfrak{N}}
-\end{array}
-\]
 
 %{{{
 \begin{comment}
@@ -92,9 +79,47 @@ A \textit{pattern} is a set \(p\). If a set, vector, element (or other data) \(d
 \]
 \end{comment}
 %}}}
-
 \subsubsection{Example}
+\[
+\begin{array}{ccl}
+	\mathfrak{E} & := &
+	%\setdef{\Omega\in D}{\Omega\in\mathfrak{T} \lor \left(\Omega=\vect{\omega_1, \cdots, \omega_n, \text{``\(+\)''}, \omega_i, \cdots, \omega_j} \land \set{\vect{\omega_1, \cdots, \omega_n}, \vect{\omega_i, \cdots, \omega_j}} \subseteq \mathfrak{E}\right)} \\
+	%& = &
+	\mathfrak{T} \cup \setdef{\vect{\omega_1, \cdots, \omega_n, \text{``\(+\)''}, \omega_i, \cdots, \omega_j}}{\vect{\omega_1, \cdots, \omega_n}, \vect{\omega_i, \cdots, \omega_j} \in \mathfrak{E}} \\
+	\mathfrak{T} & := &
+	%\setdef{\Omega\in D}{\Omega\in\mathfrak{F} \lor \left(\Omega=\vect{\omega_1, \cdots, \omega_n, \text{``\(\times\)''}, \omega_i, \cdots, \omega_j} \land \set{\vect{\omega_1, \cdots, \omega_n}, \vect{\omega_i, \cdots, \omega_j}} \subseteq \mathfrak{T}\right)} \\
+	%& = &
+	\mathfrak{F} \cup \setdef{\vect{\omega_1, \cdots, \omega_n, \text{``\(\times\)''}, \omega_i, \cdots, \omega_j}}{\vect{\omega_1, \cdots, \omega_n}, \vect{\omega_i, \cdots, \omega_j} \in \mathfrak{T}} \\
+	\mathfrak{F} & := &
+	%\setdef{\Omega\in D}{\Omega\in\mathfrak{N} \lor \left(\Omega=\vect{\text{``(''}, \omega_1, \cdots, \omega_n, \text{``)''}} \land \vect{\omega_1, \cdots, \omega_n} \in \mathfrak{E}\right)} \\
+	%& = &
+	\mathfrak{N} \cup \setdef{\vect{\text{``(''}, \omega_1, \cdots, \omega_n, \text{``)''}}}{\vect{\omega_1, \cdots, \omega_n} \in \mathfrak{E}} \\
+	\mathfrak{N} & := &
+	%\setdef{\Omega\in D}{\Omega \in \set{\text{``0''}, \cdots, \text{``9''}} \lor \left( \Omega = \vect{\omega_1, \omega_2, \cdots, \omega_n} \wedge \omega_1\in\mathfrak{N} \wedge \vect{\omega_2, \cdots, \omega_n}\in\mathfrak{N}\right)} \\
+	%& = &
+	N \cup N^* \\
+	N & := & \set{\text{``0''}, \cdots, \text{``9''}}
+\end{array}
+\]
 
+\[
+\begin{array}{ccl}
+	s &= &\vect{\text{``(''}, \text{``5''}, \text{``+''}, \text{``1''}, \text{``0''}, \text{``)''}, \text{``\(\times\)''}, \text{``3''}, \text{``+''}, \text{``9''}} \\
+	&= &\vect{\text{``(''}, \mathfrak{n}_1, \text{``+''}, \mathfrak{n}_2, \mathfrak{n}_3, \text{``)''}, \text{``\(\times\)''}, \mathfrak{n}_4, \text{``+''}, \mathfrak{n}_5} \\
+	&= &\vect{\text{``(''}, \mathfrak{n}_1, \text{``+''}, \mathfrak{n}_6, \text{``)''}, \text{``\(\times\)''}, \mathfrak{n}_4, \text{``+''}, \mathfrak{n}_5} \\
+	&= &\vect{\text{``(''}, \mathfrak{e}_6, \text{``)''}, \text{``\(\times\)''}, \mathfrak{n}_4, \text{``+''}, \mathfrak{n}_5} \\
+	&= &\vect{\mathfrak{f}_1, \text{``\(\times\)''}, \mathfrak{n}_4, \text{``+''}, \mathfrak{n}_5} \\
+	&= &\vect{\mathfrak{f}_1, \text{``\(\times\)''}, \mathfrak{f}_2, \text{``+''}, \mathfrak{n}_5} \\
+	&= &\vect{\mathfrak{t}_1, \text{``\(\times\)''}, \mathfrak{t}_2, \text{``+''}, \mathfrak{n}_5} \\
+	&= &\vect{\mathfrak{t}_3, \text{``+''}, \mathfrak{n}_5} \\
+	&= &\vect{\mathfrak{e}_3, \text{``+''}, \mathfrak{e}_5} \\
+	&= \mathfrak{e} \\
+\end{array}
+\]
+
+\textit{Pattern matching is the same as tokenwize parsing?}
+%{{{
+\begin{comment}
 \[
 	\mathfrak{P}(\Omega) = \left\{
 		\begin{array}{cl}
@@ -146,7 +171,8 @@ A \textit{pattern} is a set \(p\). If a set, vector, element (or other data) \(d
 	\right. \\
 \end{array}
 \]
-
+\end{comment}
+%}}}
 %{{{
 \begin{comment}
 %\usepackage{amsmath,amssymb}
@@ -260,8 +286,8 @@ A \textit{pattern} is a set \(p\). If a set, vector, element (or other data) \(d
 \land\ \mathfrak{N}(\vect{\omega_2,\dots,\omega_n})\bigr).
 \end{aligned}
 \]
-%}}}
 \end{comment}
+%}}}
 
 
 
