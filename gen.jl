@@ -5,7 +5,7 @@
 using Random: shuffle
 
 #{{{AI GENERATED CODE
-function weighted_sample(items::Union{Tuple,Vector}, f::Function) #AI GENERATED
+@logged function weighted_sample(items::Union{Tuple,Vector}, f::Function) #AI GENERATED
 	@ignore f
 	# Calculate weights based on the function
 	weights = map(f, items)
@@ -101,7 +101,7 @@ end
 	breadth::Int64 = 0
 	for token ∈ σ
 		if token ∈ keys(Φ)
-			push!(new, x->(ϟ(Φ, choice(Φ[token]), choice)))
+			push!(new, x->(ϟ(Φ, Tuple(choice(Φ[token])), choice)))
 		else
 			push!(new, token)
 		end

@@ -1,4 +1,3 @@
-
 @START_OF_DEBUG_CATEGORY "pattern"
 
 #=
@@ -55,8 +54,12 @@ end
 	return nothing
 end
 
-@logged function choose_perm(seqs::Any, weights::PermWeights, generators::Vector{Permutation})::Permutation
-	return findmin(x->sum(x .→ weights[x]), seqs)[2]
+@logged function choose_seq(seqs::Any, weights::PermWeights, generators::Vector{Permutation})::Vector{Any}
+	if typeof(seqs) != Set{Vector{Permutation}}
+		return [seqs]
+	end
+	s = collect(seqs)
+	return s[findmin(x->sum([weights[perm] for perm ∈ x]), s)[2]]
 end
 
 #TESTING
@@ -65,5 +68,9 @@ w = PermWeights()
 
 generators = [[[1,2]], [[2,3]]]
 register_generators(G, w, generators)
+
+for i in 1:20; explore(G, generators, w, [rand(keys(G)), rand(keys(G))]); display(G); display(w); end
+
+ϟ(G, ([[1,2,3]],), x->choose_seq(x,w,generators))
 
 @END_OF_DEBUG_CATEGORY
