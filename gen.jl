@@ -91,25 +91,17 @@ end
 	return tuple(evaluated...)
 end
 
-@logged function choose_perm(set)::Permutation
-	return findmin(x -> x.weight, set)[2]
-end
-
-@logged function ϟ_perm(Φ::Dict, σ::Tuple)::Tuple
+@logged function ϟ(Φ::Dict, σ::Tuple, choice::Function)::Tuple
 	@ignore Φ
 	if length(σ) == 0
 		return σ
-	end
-
-	if depth_breadth == 0.0
-		error("depth_breadth ought not to equal zero, lest the function run forever")
 	end
 
 	new = []
 	breadth::Int64 = 0
 	for token ∈ σ
 		if token ∈ keys(Φ)
-			push!(new, x->(ϟ(Φ, choose_perm(Φ[token]), choice)))
+			push!(new, x->(ϟ(Φ, choice(Φ[token]), choice)))
 		else
 			push!(new, token)
 		end
@@ -128,6 +120,7 @@ end
 
 end
 #{{{EXAMPLES
+#=
 mx = Dict(
 	'x' => (
 		('x'," + ",'x'),
@@ -262,6 +255,7 @@ språk = Dict(
 		("elaka",),
 	),
 )
+=#
 #}}}
 
 @END_OF_DEBUG_CATEGORY
