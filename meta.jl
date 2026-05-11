@@ -118,7 +118,7 @@ end
 		end
 	end
 
-	if args[1] ∈ (:..., :->, :(::)) # non-call expressions
+	if args[1] ∈ (:..., :->, :(::), :ref) # non-call expressions
 		@log "NON-CALL EXPRESSION"
 		return Expr(args...)
 	elseif args[1] == '@'
@@ -183,5 +183,3 @@ end
 # TODO:
 # - make a better tokenizer that can split up expressions like: "(+ 3 4)"
 #   - one can model the state machine as a set of permutations -- for example 'a' -- which maps one state (modeled as integers) to another
-# - implement loops, anonymous functions (->), ranges and so on
-#   - generalize expressions so as to include non-calls, like anonymous functions

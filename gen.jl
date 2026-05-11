@@ -120,7 +120,8 @@ end
 
 end
 #{{{EXAMPLES
-#=
+macro load_examples()
+quote
 mx = Dict(
 	'x' => (
 		('x'," + ",'x'),
@@ -255,7 +256,8 @@ språk = Dict(
 		("elaka",),
 	),
 )
-=#
+	end
+end
 #}}}
 
 @END_OF_DEBUG_CATEGORY

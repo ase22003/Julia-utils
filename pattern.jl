@@ -12,6 +12,9 @@ PermWeights = Dict{Any, UInt64}
 PermΦ = Dict{Permutation, Any}
 
 @logged function add_obs(Φ::PermΦ, generators::Vector{Permutation}, sequence::Vector{Permutation}, result::Permutation)::Nothing
+	@ignore Φ
+	@ignore generators
+	
 	if result ∈  generators
 		return nothing
 	end
@@ -24,6 +27,10 @@ PermΦ = Dict{Permutation, Any}
 end
 
 @logged function explore(Φ::PermΦ, generators::Vector{Permutation}, weights::PermWeights, seq::Vector{Permutation})::Nothing
+	@ignore Φ
+	@ignore generators
+	@ignore weights
+
 	prod = compose_perms(seq)
 	@log prod
 
@@ -55,6 +62,8 @@ end
 end
 
 @logged function choose_seq(seqs::Any, weights::PermWeights, generators::Vector{Permutation})::Vector{Any}
+	@ignore generators
+	@ignore weights
 	if typeof(seqs) != Set{Vector{Permutation}}
 		return [seqs]
 	end
@@ -66,11 +75,36 @@ end
 G = PermΦ()
 w = PermWeights()
 
-generators = [[[1,2]], [[2,3]]]
+generators = [[[1,2]], [[1,2,3]], [[2,3,4]]]
 register_generators(G, w, generators)
 
-for i in 1:20; explore(G, generators, w, [rand(keys(G)), rand(keys(G))]); display(G); display(w); end
+function rand_perm(G::PermΦ)
+	perm = rand(keys(G))
+	while perm == IDENTITY
+		perm = rand(keys(G))
+	end
+	return perm
+end
+for i in 1:30
+	explore(G, generators, w, [rand_perm(G), rand_perm(G)])
+end
 
-ϟ(G, ([[1,2,3]],), x->choose_seq(x,w,generators))
+push!(DEBUG_ENABLED_CATEGORIES, "pattern")
+push!(DEBUG_ENABLED_CATEGORIES, "gen")
+
+problem = [[1,4]]
+sol = ϟ(G, (problem,), x->choose_seq(x,w,generators))
+
+println(sol)
+
+#verify
+names = (65:90 .→ Char ) .→ string
+vd = Dict()
+for (i,perm) ∈ enumerate(generators)
+	vd[names[i]] = [perm]
+end
+res = compose_perms(collect(ϟ(vd, sol, x->x)))
+println(res)
+
 
 @END_OF_DEBUG_CATEGORY
