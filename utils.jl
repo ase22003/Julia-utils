@@ -60,5 +60,15 @@ function ○(f::Function, n::Int)::Function
 	∘([f for i in 1:n]...)
 end
 #}}}
+#{{{strings
+#+(a::String, b::String)::String = string(a, b)
+#+=
+macro strcat(a, b)
+	:(string($a, $b))
+end
+macro strapp(a, b)
+	:($a = string($a, $b))
+end
+#}}}
 
 @END_OF_DEBUG_CATEGORY

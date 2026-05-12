@@ -118,10 +118,10 @@ end
 		end
 	end
 
-	if args[1] ∈ (:..., :->, :(::), :ref) # non-call expressions
+	if args[1] ∈ (:..., :->, :(::), :ref, :tuple, :vect) # non-call expressions
 		@log "NON-CALL EXPRESSION"
 		return Expr(args...)
-	elseif args[1] == '@'
+	elseif String(args[1])[1] == '@'
 		@log "MACRO CALL"
 		return Expr(:macrocall, args...)
 	else
@@ -183,3 +183,4 @@ end
 # TODO:
 # - make a better tokenizer that can split up expressions like: "(+ 3 4)"
 #   - one can model the state machine as a set of permutations -- for example 'a' -- which maps one state (modeled as integers) to another
+# - macro calls don't really work -- fix 'em.
