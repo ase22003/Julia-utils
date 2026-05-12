@@ -135,13 +135,14 @@ Further, \(\Phi_n = \mathscr{R}(\Phi, n)\), where
 \(\Phi:\mathscr{G} \to \set{\emptyset}\) 
 and \(n\in\mathbb{N}\), is a partial or full representation of the group G, where each element in the domain is mapped thereby to the set of its neighbours.
 
-For each \(l\in\text{dom}(\Phi_n)\), then, a set of vectors \(\solarr\in\mathscr{G}^{<\omega}\) can be inferred with \(\kappa:\Phi\times G\to\mathscr{G}^{<\omega}\)\color{red}!!!!!!!!! + should \(\mathscr{G}\) be included too?\color{black}, defined by 
+For each \(l\in\text{dom}(\Phi_n)\), then, a set of vectors \(\solarr\in\mathscr{G}^{<\omega}\) can be inferred with \(\kappa:\Phi\times G\to\mathscr{G}^{<\omega}\)\color{red}!!!!!!!!! + should \(\mathscr{G}\) be included in domain too? probably, yes!!!!!!!!\color{black}, defined by 
 \[
 	\kappa(\Phi, g) = \condw{
-		\conde{\set{g}}{g\in\mathscr{G}}
+		\conde{g}{g\in\mathscr{G}}
 		%\conde{\underset{k\in\kappa\prnth{\Phi, \Phi\prnth{o}}}\bigcup k}{\text{otherwise}}
-		\conde{\underset{k\in\Phi(g)}\bigcup {\prnth{\underset{j\in\kappa(k)}{\scalebox{2}{$\vcat$}}}} }{\text{otherwise}}
+		\conde{\underset{k\in\Phi(g)}\bigcup {\prnth{\underset{j\in k}{\scalebox{2}{$\vcat$}}\kappa\prnth{\Phi, j}}} }{\text{otherwise}}
 	}
 \]
+\color{red}!!!!!!!!!!!THE DEFINITION IS WRONG, NOW THE VECTORS WILL INCLUDE SETS OF POSSIBLE VECTORS!!!!!!!!!!!\color{black}
 
 \end{document}
