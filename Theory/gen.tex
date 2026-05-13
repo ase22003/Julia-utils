@@ -11,6 +11,7 @@
 
 
 
+
 \begin{comment}
 \usepackage[margin=0.70in]{geometry}
 \usepackage[utf8]{inputenc}
@@ -78,6 +79,8 @@
 \newcommand{\solperm}{\acute{\solarr}}
 \newcommand\bbigcap{\scalebox{1.5}{$\bigcap$}}
 \newcommand\bbigcup{\scalebox{1.5}{$\bigcup$}}
+\newcommand{\Phiset}{\framebox{$\Phi$}}
+%\newcommand{\Phiset}{\bbox[#000000]{\color{white}{\Phi}}}
 %}}}
 
 \section{Data Generation}
@@ -115,27 +118,28 @@ Let \(a \vcat b= \vect{a_1,\cdots,a_n,b_1,\cdots,b_m}\), where \(a=\vect{a_1,\cd
 \newpage
 \section{\texttt{gen.jl} and \texttt{pattern.jl}}
 
-The \textit{map form} of a pattern \(\mathfrak{P}\) is a function \(\Phi':\mathfrak{P}\to L\), where \(L\subseteq\mathcal{P}(\mathfrak{P})\) is a set of \textit{labels}\footnote{Lables -- or, \textit{concepts} -- are useful abstractions of patterns, which will be used later to optimize the complexity of solution-finding systems. The subsets \(\mathfrak{T, F, N}\) and \(N\) in example 1.1.1 are examples of lables.}.
+The \textit{map form} of a pattern \(\mathfrak{P}\) is a function \(\Pi:\mathfrak{P}\to L\), where \(L\subseteq\mathcal{P}(\mathfrak{P})\) is a set of \textit{labels}\footnote{Lables -- or, \textit{concepts} -- are useful abstractions of patterns, which will be used later to optimize the complexity of solution-finding systems. The subsets \(\mathfrak{T, F, N}\) and \(N\) in example 1.1.1 are examples of lables.}.
 %\textit{concepts}.
-The \textit{inverse map form} of a pattern \(\mathfrak{P}\) is a function \(\Phi:L \to \mathcal{P}(\mathfrak{P})\), where \(\Phi(l) = \setdef{p\in\mathfrak{P}}{\Phi'(p)=l}\) for \(l\in L\).
+The \textit{inverse map form} of a pattern \(\mathfrak{P}\) is a function \(\Phi:L \to \mathcal{P}(\mathfrak{P})\), where \(\Phi(l) = \setdef{p\in\mathfrak{P}}{\Pi(p)=l}\) for \(l\in L\).
 
-Let \(G:=\left( \left\langle \mathscr{G} \right\rangle, * \right)\) be a group. Let \(\triangle:\Phi \times L^2 \to \Phi\) \color{red}!!!!!!!!!!!!WRONG, \(\Phi\) should be replaced by a \textit{set} of \(\Phi\)'s!!!!!!!!!!!\color{black} -- where \(\Phi\) is the inverse map form of a pattern \(\mathfrak{P} \subseteq G^{<\omega}\) and \(L = \text{dom}(\Phi) \subseteq G\) -- be defined by 
-\(\forall l\in\text{dom}(\Phi_1)\setminus\set{l_1*l_2}\ \left(\Phi_2(l) = \Phi_1(l)\right)\) and \(\Phi_2(l_1*l_2) = \Phi_1(l_1*l_2)\cup\set{\vect{l_1,l_2}}\) if \(l_1*l_2\in\text{dom}(\Phi_1)\) and \(\Phi_2(l_1*l_2) = \set{\vect{l_1,l_2}}\) if not -- where \(\Phi_2 = \triangle(\Phi_1, \vect{l_1, l_2})\)\color{red}????????\color{black} and \(l_1, l_2 \in \text{dom}(\Phi_1)\).
-%\(\forall l\in\text{dom}(\Phi_1)\ \left(\Phi_1(l) \subseteq \Phi_2(l)\right)\) and \(\vect{l_1,l_2} \in \Phi_2(l_1*l_2)\) where \(\Phi_2 = \triangle(\Phi_1, \vect{l_1, l_2})\) and \(l_1, l_2 \in \text{dom}(\Phi_1)\).
+Let \(G:=\left( \left\langle \mathscr{G} \right\rangle, * \right)\) be a group. Let \(\triangle:\Phiset \times L^2 \to \Phiset\) -- where \(\Phiset\) is the set of all inverse map forms of a pattern \(\mathfrak{P} \subseteq G^{<\omega}\) and \(L \subseteq G\) -- be defined by 
+%\(\forall l\in\text{dom}(\Phi_1)\setminus\set{l_1*l_2}\ \left(\Phi_2(l) = \Phi_1(l)\right)\) and \(\Phi_2(l_1*l_2) = \Phi_1(l_1*l_2)\cup\set{\vect{l_1,l_2}}\) if \(l_1*l_2\in\text{dom}(\Phi_1)\) and \(\Phi_2(l_1*l_2) = \set{\vect{l_1,l_2}}\) if not -- where \(\Phi_2 = \triangle(\Phi_1, \vect{l_1, l_2})\) and \(l_1, l_2 \in \text{dom}(\Phi_1)\).
+\(\forall l\in\text{dom}(\Phi)\setminus\set{l_1*l_2}\ \left(\Phi'(l) = \Phi(l)\right)\) and \(\Phi'(l_1*l_2) = \Phi(l_1*l_2)\cup\set{\vect{l_1,l_2}}\) if \(l_1*l_2\in\text{dom}(\Phi)\) and \(\Phi'(l_1*l_2) = \set{\vect{l_1,l_2}}\) if not -- where \(\Phi' = \triangle(\Phi, \vect{l_1, l_2})\) and \(l_1, l_2 \in \text{dom}(\Phi)\).
+%%\(\forall l\in\text{dom}(\Phi_1)\ \left(\Phi_1(l) \subseteq \Phi_2(l)\right)\) and \(\vect{l_1,l_2} \in \Phi_2(l_1*l_2)\) where \(\Phi_2 = \triangle(\Phi_1, \vect{l_1, l_2})\) and \(l_1, l_2 \in \text{dom}(\Phi_1)\).
 
-Now, consider the function \(\mathscr{R}:\Phi \times \mathbb{N} \to \Phi\) \color{red}!!!!!!!!!\color{black} defined by 
+Consider the function \(\mathscr{R}:\Phiset \times \mathbb{N} \to \Phiset\) defined by 
 \[
 	\mathscr{R}(\Phi, n) = \condw{
 	\conde{\Phi}{n=0}
 	\conde{\mathscr{R}\prnth{\triangle\prnth{\Phi, \overset{2}{\underset{i=1}{\scalebox{2}{$\vcat$}}}\text{Rand}\prnth{\text{dom}\prnth{\Phi}}}}, n-1)}{\text{otherwise}}
 }.
 \]
-Further, \(\Phi_n = \mathscr{R}(\Phi, n)\), where 
+Now, let \(\Phi_n = \mathscr{R}(\Phi, n)\), where 
 %\(\text{dom}(\Phi) = \mathscr{G}\) and \(\text{Img}(\Phi) = \set{\emptyset}\) 
 \(\Phi:\mathscr{G} \to \set{\emptyset}\) 
-and \(n\in\mathbb{N}\), is a partial or full representation of the group \(G\), where each element in the domain is mapped thereby to the set of its neighbours.
+and \(n\in\mathbb{N}\). Then \(\Phi_n\) is a partial or full representation of the group \(G\), where each element in \(\text{dom}(\Phi_n)\) maps to the set of ordered pairs of elements in \(G\) to which it is mapped by \(*\).
 
-For each \(l\in\text{dom}(\Phi_n)\), then, a set of vectors \(\solarr\in\mathscr{G}^{<\omega}\) can be inferred with \(\kappa:\Phi\times G\to\mathscr{G}^{<\omega}\)\color{red}!!!!!!!!! + should \(\mathscr{G}\) be included in domain too? probably, yes!!!!!!!!\color{black}, defined by 
+For each \(l\in\text{dom}(\Phi_n)\), then, a set of vectors \(\solarr\in\mathscr{G}^{<\omega}\) can be inferred with \(\kappa:\Phiset\times G\to\mathscr{G}^{<\omega}\)\color{red}!!!!!!!!! should \(\mathscr{G}\) be included in domain too? probably, yes!!!!!!!!\color{black}, defined by 
 \[
 	\kappa(\Phi, g) = \condw{
 		\conde{g}{g\in\mathscr{G}}
