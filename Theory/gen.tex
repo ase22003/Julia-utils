@@ -80,9 +80,12 @@
 \newcommand\bbigcap{\scalebox{1.5}{$\bigcap$}}
 \newcommand\bbigcup{\scalebox{1.5}{$\bigcup$}}
 \newcommand{\Phiset}{\framebox{$\Phi$}}
-%\newcommand{\Phiset}{\bbox[#000000]{\color{white}{\Phi}}}
+%\newcommand{\Phiset}{\bbox[#000000]{\color{white}{\Phi}} }
 \newcommand\koppa{\raisebox{-0.25em}{$\includegraphics[scale=.04]{symbols/koppa.png}$}}
 \newcommand{\Cset}{\framebox{$\mathcal{C}$}}
+\newcommand{\Piset}{\framebox{$\Pi$}}
+\newcommand{\prnthl}[1]{\bigl( #1 \bigr)}
+\newcommand{\prnthll}[1]{\Bigl( #1 \Bigr)}
 %}}}
 
 \section{Data Generation}
@@ -126,9 +129,9 @@ A \textit{grimoire} of a pattern \(\mathfrak{P}\) is a function \(\Phi:L_{\Phi} 
 %: The name of this concept (currencly grimoire) should maybe be switched to something like "inverse grimoire" or something entirely different, since it holds the results, and points to the possible methods for getting there, instead of, as most instruction books, points to the effects of some spell -- like a programming documentation
 \textit{labels}\footnote{Lables -- or, \textit{concepts} -- are useful abstractions of patterns, which will be used later to optimize the complexity of solution-finding systems. The subsets \(\mathfrak{T, F, N}\) and \(N\) in example 1.1.1 are examples of lables.}.
 
-Let \(G:=\left( \left\langle \mathscr{G} \right\rangle, * \right)\) be a semigroup. Let \(\triangle:\Phiset \times G^2 \to \Phiset\) -- where \(\Phiset\) is the set of all grimoires of a pattern \(\mathfrak{P} \subseteq G^{<\omega}\) \color{red}!!!!!!\(\mathscr{G}\)???\color{black} -- be defined for some grimoire \(\Phi\) by 
+Let \(G:=\left( \left\langle \mathscr{G} \right\rangle, * \right)\) be a semigroup. Let \(\triangle:\Phiset \times G^2 \to \Phiset\) -- where \(\Phiset\) is the set of all grimoires of a pattern \(\mathfrak{P} \subseteq G^{<\omega}\) \color{red}!!!!!!should G be \(\mathscr{G}\)???\color{black} -- be defined for some grimoire \(\Phi\) by 
 %\(\forall l\in L (\Phi_1)\setminus\set{l_1*l_2}\ \left(\Phi_2(l) = \Phi_1(l)\right)\) and \(\Phi_2(l_1*l_2) = \Phi_1(l_1*l_2)\cup\set{\vect{l_1,l_2}}\) if \(l_1*l_2\in L (\Phi_1)\) and \(\Phi_2(l_1*l_2) = \set{\vect{l_1,l_2}}\) if not -- where \(\Phi_2 = \triangle(\Phi_1, \vect{l_1, l_2})\) and \(l_1, l_2 \in  L (\Phi_1)\).
-\(\forall l\in L_{\Phi} \setminus\set{l_1*l_2}\ \left(\Phi'(l) = \Phi(l)\right)\) and \(\Phi'(l_1*l_2) = \Phi(l_1*l_2)\cup\set{\vect{l_1,l_2}}\) if \(l_1*l_2\in L_{\Phi}\) and \(\Phi'(l_1*l_2) = \set{\vect{l_1,l_2}}\) if not -- where \(\Phi' = \triangle(\Phi, \vect{l_1, l_2})\) and \(l_1, l_2 \in G\). Note that if \(\Phi' = \triangle(\Phi, \vect{l_1, l_2})\), then \(L_{\Phi'}=L_{\Phi}\cup\set{l_1*l_2}\).
+\(\forall l\in L_{\Phi} \setminus\set{l_1*l_2}\ \left(\Phi'(l) = \Phi(l)\right)\) and \(\Phi'(l_1*l_2) = \Phi(l_1*l_2)\cup\set{\vect{l_1,l_2}}\) if \(l_1*l_2\in L_{\Phi}\) and \(\Phi'(l_1*l_2) = \set{\vect{l_1,l_2}}\) if not -- where \(\Phi' = \triangle(\Phi, \vect{l_1, l_2})\) and \(l_1, l_2 \in G\). Note that since \(L_{\Phi}=\text{dom}(\Phi)\), then \(L_{\Phi'}=L_{\Phi}\cup\set{l_1*l_2}\) if \(\Phi' = \triangle(\Phi, \vect{l_1, l_2})\).
 %%\(\forall l\in L (\Phi_1)\ \left(\Phi_1(l) \subseteq \Phi_2(l)\right)\) and \(\vect{l_1,l_2} \in \Phi_2(l_1*l_2)\) where \(\Phi_2 = \triangle(\Phi_1, \vect{l_1, l_2})\) and \(l_1, l_2 \in  L (\Phi_1)\).
 
 %Consider the exploration function 
@@ -145,7 +148,15 @@ Let \(G:=\left( \left\langle \mathscr{G} \right\rangle, * \right)\) be a semigro
 %%%\( L (\Phi) = \mathscr{G}\) and \(\text{Img}(\Phi) = \set{\emptyset}\) 
 %%\(\Phi:\mathscr{G} \to \set{\emptyset}\) 
 %Now, let \(\mathscr{E}'(\Phi, \vect{\mathcal{C}_1,\cdots,\mathcal{C}_n}) = \underset{i=1}{\overset{n}\bbigcirc}\mathscr{E}(\Phi, \mathcal{C}_i)\)\color{red}!!!!!!This is another subgroup!!!\color{black}, where 
-Now, consider the exploration function \(\mathscr{E}:\Phiset \times \Cset^{<\omega} \to \Phiset\) defined by \(\mathscr{E}(\Phi, \vect{\mathcal{C}_1,\cdots,\mathcal{C}_n}) = \underset{i=1}{\overset{n}\bbigcirc}\triangle\prnth{\Phi, \mathcal{C}_i\prnth{ L_{\Phi}}}\)\color{red}!!!!!!This is another subgroup!!!\color{black}, where \(\Cset=\mathcal{P}(G)\to G^2\) and \(n\in\mathbb{N}\). Then \color{red}!!!!!THIS SHOULD BE A LEMMA!!!\color{black} \(\Phi_n\) is a partial or full representation of the group \(G\), where each element in \( L (\Phi_n)\) maps to the set of ordered pairs of elements in \(G\) to which it is mapped by \(*\).
+Now, consider the exploration function \(\mathscr{E}:\Phiset \times \Cset^{<\omega} \to \Phiset\) defined by \(\mathscr{E}(\Phi, \vect{\mathcal{C}_1,\cdots,\mathcal{C}_n}) = \underset{i=1}{\overset{n}\bbigcirc}\triangle\prnth{\Phi, \mathcal{C}_i\prnth{ L_{\Phi}}}\)\color{green}!!!!!!This is another subgroup!!!\color{black}, where \(\Cset\subset\mathcal{P}(G)\to G^2\) and \(\forall\mathcal{C}\in\Cset\ \prnthll{\forall S\in\mathcal{P}(G)\ \prnthl{\mathcal{C}(S)\in S}}\). Then \color{red}!!!!!THIS SHOULD BE A LEMMA!!!\color{black} \(\Phi_n\) is a partial or full representation of the group \(G\), where each element in \( L (\Phi_n)\) maps to the set of ordered pairs of elements in \(G\) to which it is mapped by \(*\).
+
+\color{orange}!!!!!!!!! therefore, for each output generated by \(\mathscr{E}\), one can define a function \(\koppa\) such that: !!!!!!!!\color{black}
+Let a function \(\koppa:\Phiset\times G^{<\omega}\times \Piset \to\mathscr{G}^{<\omega}\) be defined by 
+\[\koppa\prnth{\Phi,\sigma,\Pi}=\condw{
+	\conde{\sigma}{\forall l\in\sigma\ \prnth{l\in\mathscr{G}}}
+	\conde{\koppa\prnth{\Phi,\koppa_{\text{step}}\prnth{\Phi,\sigma,\Pi},\Pi}}{\text{otherwise}}}
+,\] 
+where \(\koppa_{\text{step}}\prnth{\Phi,\sigma,\Pi}=\overset{\left|\sigma\right|}{\underset{i=1}{\scalebox{2}{$\vcat$}}}\Pi\prnth{\Phi\prnth{\sigma_i}}\) and \(\Piset\subset\mathcal{P}\prnth{G^{<\omega}}\to G^{<\omega}\) where \(\forall\Pi\in\Piset\ \prnthll{\forall S\in\mathcal{P}\prnth{G^{<\omega}}\ \prnthl{\Pi(S)\in S}}\).
 
 For each \(l\in L_{\Phi_n}\), then, a set of vectors \(\solarr\in\mathscr{G}^{<\omega}\) can be inferred with \(\koppa:\Phiset\times G\to\mathscr{G}^{<\omega}\)\color{red}!!!!!!!!! should \(\mathscr{G}\) be included in domain too? probably, yes!!!!!!!!\color{black}, defined by 
 \[
@@ -157,6 +168,7 @@ For each \(l\in L_{\Phi_n}\), then, a set of vectors \(\solarr\in\mathscr{G}^{<\
 \]
 \color{red}!!!!!!!!!!!THE DEFINITION IS WRONG, NOW THE VECTORS WILL INCLUDE SETS OF POSSIBLE VECTORS!!!!!!!!!!!\color{black}
 
+SKRIV TILL RÄTTA DEFINITIONEN AV \(\koppa\), SÅSOM STÅR I ANTECKNINGSBOKEN. BEVISA FAKTUM OM DEN GENERERADE STRUKTUREN.
 \end{document}
 
 
@@ -164,3 +176,6 @@ For each \(l\in L_{\Phi_n}\), then, a set of vectors \(\solarr\in\mathscr{G}^{<\
 % - figure out how to insert \koppa, and replace \koppa therewith so as to match the julia programs (gen.jl)
 % - model weights
 % - Meta: treat \Phi's as elements in a group with \triangle ( + [l_1,l_2]) as an operator. Then IMF patterns can be constructed using the same system -- IMF patterns for adding stuff to IMF patterns. What this is, is observing the change in patterns from multiple puzzles/worlds. -- this can/should be expanded further, with observing observations of change in exploring puzzles and so on...
+
+
+
