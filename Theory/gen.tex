@@ -90,6 +90,8 @@
 \newcommand{\validPhi}{\widehat{\Phi}}
 \newcommand{\validPhiset}{\setof\validPhi}
 \newcommand{\powerset}[1]{\mathcal{P}\prnth{#1}}
+\newcommand{\spell}{\mathfrak{s}}
+\newcommand{\spellset}[1]{\mathfrak{S}_{#1}}
 %}}}
 
 \section{Data Generation}
@@ -127,16 +129,20 @@ Let \(a \vcat b= \vect{a_1,\cdots,a_n,b_1,\cdots,b_m}\), where \(a=\vect{a_1,\cd
 \newpage
 \section{\texttt{gen.jl} and \texttt{pattern.jl}}
 
-%The \textit{map form} of a pattern \(\mathfrak{P}\) is a function \(\Pi:\mathfrak{P}\to L\), where \(L\subseteq\mathcal{P}(\mathfrak{P})\) is a set of \textit{labels}\footnote{Lables -- or, \textit{concepts} -- are useful abstractions of patterns, which will be used later to optimize the complexity of solution-finding systems. The subsets \(\mathfrak{T, F, N}\) and \(N\) in example 1.1.1 are examples of lables.}.
-A \textit{grimoire} of a pattern \(\mathfrak{P}\) is a function \(\Phi:L_{\Phi} \to \mathcal{P}(\mathfrak{P})\), where \(L_{\Phi}\subseteq\mathcal{P}(\mathfrak{P})\) is a set of 
-%: (results, resultant effects, goals)
-%: The name of this concept (currencly grimoire) should maybe be switched to something like "inverse grimoire" or something entirely different, since it holds the results, and points to the possible methods for getting there, instead of, as most instruction books, points to the effects of some spell -- like a programming documentation
-\textit{labels}\footnote{Lables -- or, \textit{concepts} -- are useful abstractions of patterns, which will be used later to optimize the complexity of solution-finding systems. The subsets \(\mathfrak{T, F, N}\) and \(N\) in example 1.1.1 are examples of lables.}.
+%%%The \textit{map form} of a pattern \(\mathfrak{P}\) is a function \(\Pi:\mathfrak{P}\to L\), where \(L\subseteq\mathcal{P}(\mathfrak{P})\) is a set of \textit{labels}\footnote{Lables -- or, \textit{concepts} -- are useful abstractions of patterns, which will be used later to optimize the complexity of solution-finding systems. The subsets \(\mathfrak{T, F, N}\) and \(N\) in example 1.1.1 are examples of lables.}.
+%A \textit{grimoire} of a pattern \(\mathfrak{P}\) is a function \(\Phi:L_{\Phi} \to \mathcal{P}(\mathfrak{P})\), where \(L_{\Phi}\subseteq\mathcal{P}(\mathfrak{P})\) is a set of 
+%A \textit{grimoire} of a pattern \(\mathfrak{P}\) is a function \(\Phi:L_{\Phi} \to \mathcal{P}(\mathfrak{P})\), where \(L_{\Phi}\subseteq\mathfrak{P}\) is a set of 
+%A \textit{grimoire} \(\Phi\) of a semigroup \(G\), a set of \textit{spells} \(L_{\Phi}\subseteq G\) and a set of \textit{movements} \(\mathfrak{A}\subseteq L_{\Phi}\) is a map in \(L_{\Phi} \to \mathcal{P}(G^{<\omega})\) such that \[\forall l\in L_{\Phi}\setminus\mathfrak{A}\ \prnth{\forall \sigma\in\Phi(l)\ \prnth{\overset{\left|\sigma\right|}{\underset{i=1}{\scalebox{2}{$*$}}}\sigma_i=l}}\] -- where \(*\) is the binary operator belonging to \(G\).
+A \textit{grimoire} \(\Phi\) of a semigroup \(G\), a set of \textit{spells} \(\spellset{\Phi}\subseteq G\) and a set of \textit{movements} \(\mathfrak{A}\subseteq L_{\Phi}\) is a map in \(L_{\Phi} \to \mathcal{P}\prnth{\spellset{\Phi}^{<\omega}}\) such that \(\spell_1*\cdots*\spell_n=\spell\) -- where \(*\) is the binary operator belonging to \(G\) -- for each \(\vect{\spell_1,\cdots,\spell_n}\in\Phi\prnth{\spell}\) and \(l\in \spellset{\Phi}\setminus\mathfrak{A}\).
+%%%: (results, resultant effects, goals)
+%%%: The name of this concept (currently grimoire) should maybe be switched to something like "inverse grimoire" or something entirely different, since it holds the results, and points to the possible methods for getting there, instead of, as most instruction books, points to the effects of some spell -- like a programming documentation
+%\textit{labels}\footnote{Lables -- or, \textit{concepts} -- are useful abstractions of patterns, which will be used later to optimize the complexity of solution-finding systems. The subsets \(\mathfrak{T, F, N}\) and \(N\) in example 1.1.1 are examples of lables.}.
 
-Let \(G:=\left( \left\langle \mathscr{G} \right\rangle, * \right)\) be a semigroup. Let \(\triangle:\Phiset \times G^2 \to \Phiset\) -- where \(\Phiset\) is the set of all grimoires of a pattern \(\mathfrak{P} \subseteq G^{<\omega}\) \color{red}!!!!!!should G be \(\mathscr{G}\)????, in either case, \(\mathfrak{P}\) should be defined better!!!!!\color{black} -- be defined for some grimoire \(\Phi\) by 
-%\(\forall l\in L (\Phi_1)\setminus\set{l_1*l_2}\ \left(\Phi_2(l) = \Phi_1(l)\right)\) and \(\Phi_2(l_1*l_2) = \Phi_1(l_1*l_2)\cup\set{\vect{l_1,l_2}}\) if \(l_1*l_2\in L (\Phi_1)\) and \(\Phi_2(l_1*l_2) = \set{\vect{l_1,l_2}}\) if not -- where \(\Phi_2 = \triangle(\Phi_1, \vect{l_1, l_2})\) and \(l_1, l_2 \in  L (\Phi_1)\).
-\(\forall l\in L_{\Phi} \setminus\set{l_1*l_2}\ \left(\Phi'(l) = \Phi(l)\right)\) and \(\Phi'(l_1*l_2) = \Phi(l_1*l_2)\cup\set{\vect{l_1,l_2}}\) if \(l_1*l_2\in L_{\Phi}\) and \(\Phi'(l_1*l_2) = \set{\vect{l_1,l_2}}\) if not -- where \(\Phi' = \triangle(\Phi, \vect{l_1, l_2})\) and \(l_1, l_2 \in G\). Note that since \(L_{\Phi}=\text{dom}(\Phi)\), then \(L_{\Phi'}=L_{\Phi}\cup\set{l_1*l_2}\) if \(\Phi' = \triangle(\Phi, \vect{l_1, l_2})\).
-%%\(\forall l\in L (\Phi_1)\ \left(\Phi_1(l) \subseteq \Phi_2(l)\right)\) and \(\vect{l_1,l_2} \in \Phi_2(l_1*l_2)\) where \(\Phi_2 = \triangle(\Phi_1, \vect{l_1, l_2})\) and \(l_1, l_2 \in  L (\Phi_1)\).
+Let \(G:=\left( \left\langle \mathscr{G} \right\rangle, * \right)\) be a semigroup. Let \(\triangle:\Phiset \times G^2 \to \Phiset\) -- where \(\Phiset\) is the set of all grimoires of a pattern \(\mathfrak{P} \subseteq G^{<\omega}\) -- be defined for some grimoire \(\Phi\) by \(\forall \spell\in \spellset{\Phi} \setminus\set{\spell_1*\spell_2}\ \left(\Phi'(l) = \Phi(l)\right)\) and \(\Phi'(\spell_1*\spell_2) = \Phi(\spell_1*\spell_2)\cup\set{\vect{\spell_1,\spell_2}}\) if \(\spell_1*\spell_2\in \spellset{\Phi}\) and \(\Phi'(\spell_1*\spell_2) = \set{\vect{\spell_1,\spell_2}}\) if not -- where \(\Phi' = \triangle(\Phi, \vect{\spell_1, \spell_2})\) and \(\spell_1, \spell_2 \in G\). Note that since \(\spellset{\Phi}=\text{dom}(\Phi)\), then \(\spellset{\Phi'}=\spellset{\Phi}\cup\set{\spell_1*\spell_2}\) if \(\Phi' = \triangle(\Phi, \vect{\spell_1, \spell_2})\).
+%Let \(G:=\left( \left\langle \mathscr{G} \right\rangle, * \right)\) be a semigroup. Let \(\triangle:\Phiset \times G^2 \to \Phiset\) -- where \(\Phiset\) is the set of all grimoires of a pattern \(\mathfrak{P} \subseteq G^{<\omega}\) \color{red}!!!!!!should G be \(\mathscr{G}\)????, in either case, \(\mathfrak{P}\) should be defined better!!!!!\color{black} -- be defined for some grimoire \(\Phi\) by 
+%%\(\forall l\in L (\Phi_1)\setminus\set{l_1*l_2}\ \left(\Phi_2(l) = \Phi_1(l)\right)\) and \(\Phi_2(l_1*l_2) = \Phi_1(l_1*l_2)\cup\set{\vect{l_1,l_2}}\) if \(l_1*l_2\in L (\Phi_1)\) and \(\Phi_2(l_1*l_2) = \set{\vect{l_1,l_2}}\) if not -- where \(\Phi_2 = \triangle(\Phi_1, \vect{l_1, l_2})\) and \(l_1, l_2 \in  L (\Phi_1)\).
+%\(\forall l\in L_{\Phi} \setminus\set{l_1*l_2}\ \left(\Phi'(l) = \Phi(l)\right)\) and \(\Phi'(l_1*l_2) = \Phi(l_1*l_2)\cup\set{\vect{l_1,l_2}}\) if \(l_1*l_2\in L_{\Phi}\) and \(\Phi'(l_1*l_2) = \set{\vect{l_1,l_2}}\) if not -- where \(\Phi' = \triangle(\Phi, \vect{l_1, l_2})\) and \(l_1, l_2 \in G\). Note that since \(L_{\Phi}=\text{dom}(\Phi)\), then \(L_{\Phi'}=L_{\Phi}\cup\set{l_1*l_2}\) if \(\Phi' = \triangle(\Phi, \vect{l_1, l_2})\).
+%%%\(\forall l\in L (\Phi_1)\ \left(\Phi_1(l) \subseteq \Phi_2(l)\right)\) and \(\vect{l_1,l_2} \in \Phi_2(l_1*l_2)\) where \(\Phi_2 = \triangle(\Phi_1, \vect{l_1, l_2})\) and \(l_1, l_2 \in  L (\Phi_1)\).
 
 %Consider the exploration function 
 %%\(\mathscr{E}:\Phiset \times \mathbb{N} \to \Phiset\) 
@@ -246,6 +252,8 @@ where \(\Piset\subset\mathcal{P}\prnth{G^{<\omega}}\to G^{<\omega}\) is a set of
 \color{orange}!!!!!BEVISA FAKTUM OM DEN GENERERADE STRUKTUREN.
 
 SKRIV EXEMPEL FÖR ATT DEMONSTRERA HUR EN GRIMOIRE BYGGS UPP AV \(\mathscr{E}\), OCH SEDAN HUR \(\koppa\) GENERERAR EN LÖSNING -- T.EX. FÖR EN PERMUTATIONSGRUPP (ELLER NÅGON ANNAN SYNTAX).!!!!!!\color{black}
+
+BEVISA ATT GRIMOIRE-UTFORSKNING ÄR EN SEMIGRUPP (OCH ATT EN GRIMOIRE DÄRMED KAN DEFINIERAS MED DEN)
 
 \end{document}
 
