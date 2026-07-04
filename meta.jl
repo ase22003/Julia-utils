@@ -171,11 +171,15 @@ macro run_meta_string(s::String, BEGIN::String, END::String)
 	_meta_block(tokenize(s), BEGIN, END) → esc
 end
 macro run_meta_string(s::Evaluable)
-	(tokenize(eval(s)) → _meta_block) → esc
+	(tokenize(eval(s → esc)) → _meta_block) → esc
 	#:(@run__meta_string $(eval(s))) ????????????
 end
 macro run_meta_string(s::Evaluable, BEGIN::String, END::String)
 	_meta_block(tokenize(eval(s)), BEGIN, END) → esc
+end
+
+function run_meta_string(s::String)
+	eval(_meta_block(tokenize(s)))
 end
 
 @END_OF_DEBUG_CATEGORY
