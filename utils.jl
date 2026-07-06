@@ -2,7 +2,7 @@
 
 @START_OF_DEBUG_CATEGORY "utils"
 
-#{{{SET_TYPES
+#{{{TYPES
 SET_TYPES = [
 	Set,
 	Dict,
@@ -69,6 +69,9 @@ end
 macro strapp(a, b)
 	:($a = string($a, $b))
 end
+#}}}
+#{{{minus
+Base.:-(α::Tuple, β::Tuple)::Vector = collect(α) - collect(β)
 #}}}
 
 @END_OF_DEBUG_CATEGORY
