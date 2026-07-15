@@ -88,5 +88,10 @@ end
 	return mvect
 end
 #}}}
+#{{{lists
+@logged function homo_vector(val, N::Int)::Vector
+	return [val for i ∈ 1:N]
+end
+#}}}
 
 @END_OF_DEBUG_CATEGORY
