@@ -76,10 +76,10 @@ Base.:-(α::Tuple, β::Tuple)::Vector = collect(α) - collect(β)
 #{{{modified vector copies
 @logged function mcopy(vect::Vector, indicies::Vector{<:Int}, modifier::Function)::Vector
 	mvect = copy(vect)
-	return [
+	for i in indicies
 		mvect[i] = modifier(mvect[i])
-		for i in indicies
-	]
+	end
+	return mvect
 end
 
 @logged function mcopy(vect::Vector, index::Int, modifier::Function)::Vector

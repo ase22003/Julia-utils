@@ -256,7 +256,7 @@ språk = Dict(
 		("elaka",),
 	),
 )
-	end
+	end → esc
 end
 #}}}
 

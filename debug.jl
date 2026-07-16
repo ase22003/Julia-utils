@@ -1,5 +1,7 @@
 printstyled("--- INITIATING DEBUG SYSTEM ---\n", color=:yellow)
 
+using Printf
+
 Evaluable = Union{Expr, Symbol}
 
 mutable struct Debug
@@ -38,15 +40,15 @@ macro DISABLE_DEBUG_CATEGORY(name::String)
 	:(delete!(DEBUG_ENABLED_CATEGORIES, $name))
 end
 
-function _add_debug_category_check(log_expr::Expr)
+function _add_debug_category_check(log_expr::Expr)::Expr
 	Expr(:if, Expr(:call, :∈, DEBUG_CURRENT_CATEGORY, :DEBUG_ENABLED_CATEGORIES), log_expr)
 end
 
 macro log(msg::String)
-	Expr(:call, :_debug_log, "(LOG) «", msg, '»') → _add_debug_category_check
+	Expr(:call, :_debug_log, :_DEBUG_start_time_stamp, "(LOG) «", msg, '»') → _add_debug_category_check
 end
 macro log(val::Evaluable, str::String)
-	Expr(:call, :_debug_log, replace(string("($str) $val = "), r"#=(?s).*?=# " => ""), val)
+	Expr(:call, :_debug_log, :_DEBUG_start_time_stamp, replace(string("($str) $val = "), r"#=(?s).*?=# " => ""), val)
 end
 macro log(var::Evaluable)
 	:(@log $var "LOG")
@@ -77,7 +79,7 @@ macro logged(func)
 							if arg ∉ args
 								error("@ignore used on a non-existent or already ignored variable '$arg'")
 							end
-							_debug_log("Ignoring argument '$arg' in '$name'")
+							_debug_log(nothing, "Ignoring argument '$arg' in '$name'")
 							delete!(args, arg)
 						end
 					end
@@ -93,17 +95,19 @@ macro logged(func)
 
 	prod =	Expr(:function, sig,
 				Expr(:block,
+					:(_DEBUG_start_time_stamp = time()) → _add_debug_category_check,
 					Expr(:call, :_debug_func_stack_call, QuoteNode(name)) → _add_debug_category_check,
 					(args .|> x->(:(@log $x "ARG") → _add_debug_category_check))...,
 					body
 				)
 			)
 
-	_debug_log("Logged '$name' under '$DEBUG_CURRENT_CATEGORY'")
+	_debug_log(nothing, "Logged '$name' under '$DEBUG_CURRENT_CATEGORY'")
+	println(prod)
 	return prod
 end
 
-function _get_sig_expr(e::Expr)::Expr
+function _get_sig_expr(e::Expr)
 	if typeof(e.args[1]) == Symbol
 		return e
 	else
@@ -132,7 +136,7 @@ function _debug_replace_returns(code::Expr, func_name::Symbol)
 		new_asgn = :(_debug_return = $(ret_stmt.args[1]))
 		code.head = :block
 		code.args[1] = new_asgn
-		push!(code.args, Expr(:call, :_debug_print_return_value, :_debug_return, QuoteNode(func_name)) → _add_debug_category_check)
+		push!(code.args, Expr(:call, :_debug_print_return_value, :_DEBUG_start_time_stamp, :_debug_return, QuoteNode(func_name)) → _add_debug_category_check)
 		push!(code.args, :(return _debug_return))
 	else
 		for arg in code.args
@@ -144,18 +148,23 @@ function _debug_replace_returns(code::Expr, func_name::Symbol)
 end
 
 function _debug_func_stack_call(name::Symbol)
-	_debug_log("(CALL) ", name)
+	_debug_log(nothing, "(CALL) ", name)
 	global DEBUG_LEVEL += 1
 end
 
-function _debug_print_return_value(value, name::Symbol)
+function _debug_print_return_value(t::Union{Nothing, Real}, value, name::Symbol)
 	global DEBUG_LEVEL -= 1
-	_debug_log("(RET) ", name, ": ", value)
+	_debug_log(t, "(RET) ", name, ": ", value)
 end
 
-function _debug_log(msgs...)
-	msg = string(repeat('\t', DEBUG_LEVEL.level), msgs...)
+function _debug_log(t::Union{Nothing, Real}, msgs...)::Nothing
 	if DEBUG_DO_PRINT
+		msg = string(repeat('\t', DEBUG_LEVEL.level), msgs...)
+		if t != nothing
+			@printf("%.6f ", time()-t)
+		else
+			print("-------- ")
+		end
 		printstyled(msg, '\n', color = :blue)
 	end
 	#{{{TEMPORARY
@@ -163,6 +172,7 @@ function _debug_log(msgs...)
 	write(debug_file, string(msg, '\n'))
 	close(debug_file)
 	#}}}
+	return
 end
 
 # TODO:
