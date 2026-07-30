@@ -131,6 +131,7 @@ end
 			return Expr(:macrocall, args[1], nothing, args[2:end]...)
 		else
 			return Expr(:macrocall, args[1], nothing)
+		end
 	else
 		@log args
 		return Expr(:call, args...)
