@@ -123,8 +123,16 @@ end
 		return Expr(args...)
 	elseif String(args[1])[1] == '@'
 		@log "MACRO CALL"
-		return Expr(:macrocall, args...)
+		@log args
+		#return Expr(:macrocall, args...)
+		#
+		#I don't know why one needs one insert an extra argument here, but if you don't, then the first argument will be removed for some reason...
+		if length(args) >= 1
+			return Expr(:macrocall, args[1], nothing, args[2:end]...)
+		else
+			return Expr(:macrocall, args[1], nothing)
 	else
+		@log args
 		return Expr(:call, args...)
 	end
 end
