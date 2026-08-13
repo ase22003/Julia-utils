@@ -14,7 +14,8 @@ using LinearAlgebra
 end
 
 #e(f::Function, x::Vector{Float64}, target::Vector{Float64})::Vector{Float64} = target - f(x)
-function error_vector(f::Function, x::Vector{Float64}, target::Vector{Float64})::Vector{Float64}
+@logged function error_vector(f::Function, x::Vector{Float64}, target::Vector{Float64})::Vector{Float64}
+	@log f(x)
 	return f(x) - target
 end
 
@@ -31,7 +32,14 @@ end
 	return x + Δx
 end
 
-@logged function levenberg_marquardt(error_fun::Function, x::Vector{Float64}, goal::Real, max_time::Real=Inf, cost_fun::Function=basic_cost, λ::Float64=1e-3)::Vector{Float64}
+@logged function levenberg_marquardt(
+	error_fun::Function,
+	x::Vector{Float64},
+	goal::Real,
+	max_time::Real=Inf,
+	cost_fun::Function=basic_cost,
+	λ::Float64=1e-3
+)::Vector{Float64}
 	cost = x->cost_fun(error_fun(x))
 	start_time = time()
 	val = cost(x)
@@ -66,6 +74,25 @@ end
 		@log λ
 	end
 	return x
+end
+
+@logged function levenberg_marquardt(
+	error_fun::Function,
+	x::OrderedDict{<:Any, Float64},
+	goal::Real,
+	max_time::Real=Inf,
+	cost_fun::Function=basic_cost,
+	λ::Float64=1e-3
+)::OrderedDict{<:Any, Float64}
+	p = values(x) → collect
+	@log p
+	p = levenberg_marquardt(error_fun, p, goal, max_time, cost_fun, λ)
+	@log "new p:"
+	@log p
+	return [
+		key => p[i]
+		for (i, key) ∈ enumerate(keys(x))
+	] → OrderedDict
 end
 
 @END_OF_DEBUG_CATEGORY
