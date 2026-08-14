@@ -1,6 +1,7 @@
 @START_OF_DEBUG_CATEGORY "math"
 
 using LinearAlgebra
+using DataStructures
 
 @logged function jacobian(f::Function, x::Vector{Float64}, δ::Float64=sqrt(eps(Float64)))::Tuple{Matrix{Float64}, Vector{Float64}}
 	fx = f(x)
