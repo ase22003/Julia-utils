@@ -5,7 +5,7 @@ using Symbolics
 
 _LA_Val = Union{Symbol, Real}
 
-@logged function LA_translation_matrix(x::_LA_Val, y::_LA_Val, z::_LA_Val)::Matrix{Num}
+@logged function LA_trans(x::_LA_Val, y::_LA_Val, z::_LA_Val)::Matrix{Num}
 	for var ∈ (x, y, z)
 		if typeof(var) ∈ (Symbol, Num)
 			run_meta_string("( @variables $var )")
@@ -22,7 +22,7 @@ _LA_Val = Union{Symbol, Real}
 	end → eval
 end
 
-@logged function LA_rotation_matrix_x(θ::Real)::Matrix{Real}
+@logged function LA_rot_x(θ::Real)::Matrix{Real}
 	c = cosd(θ)
 	s = sind(θ)
 
@@ -34,7 +34,7 @@ end
 	]
 end
 
-@logged function LA_rotation_matrix_y(θ::Real)::Matrix{Real}
+@logged function LA_rot_y(θ::Real)::Matrix{Real}
 	c = cosd(θ)
 	s = sind(θ)
 
@@ -46,7 +46,7 @@ end
 	]
 end
 
-@logged function LA_rotation_matrix_z(θ::Real)::Matrix{Real}
+@logged function LA_rot_z(θ::Real)::Matrix{Real}
 	c = cosd(θ)
 	s = sind(θ)
 
@@ -58,7 +58,7 @@ end
 	]
 end
 
-@logged function LA_rotation_matrix_x(θ::Symbol)::Matrix{Num}
+@logged function LA_rot_x(θ::Symbol)::Matrix{Num}
 	run_meta_string("( @variables $θ )")
 
 	return quote
@@ -71,7 +71,7 @@ end
 	end → eval
 end
 
-function LA_rotation_matrix_y(θ::Symbol)::Matrix{Num}
+@logged function LA_rot_y(θ::Symbol)::Matrix{Num}
 	run_meta_string("( @variables $θ )")
 
 	return quote
@@ -84,7 +84,7 @@ function LA_rotation_matrix_y(θ::Symbol)::Matrix{Num}
 	end → eval
 end
 
-function LA_rotation_matrix_z(θ::Symbol)::Matrix{Num}
+@logged function LA_rot_z(θ::Symbol)::Matrix{Num}
 	run_meta_string("( @variables $θ )")
 
 	return quote
@@ -97,8 +97,8 @@ function LA_rotation_matrix_z(θ::Symbol)::Matrix{Num}
 	end → eval
 end
 
-function LA_rotation_matrix(x::_LA_Val, y::_LA_Val, z::_LA_Val)::Matrix{Num}
-	LA_rotation_matrix_z(z) * LA_rotation_matrix_y(y) * LA_rotation_matrix_x(x)
+@logged function LA_rot(x::_LA_Val, y::_LA_Val, z::_LA_Val)::Matrix{Num}
+	return LA_rot_z(z) * LA_rot_y(y) * LA_rot_x(x)
 end
 
 @END_OF_DEBUG_CATEGORY
